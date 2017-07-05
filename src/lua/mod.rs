@@ -11,9 +11,10 @@ pub use self::callbacks::{AwesomeCallbacks, BeautifulCallbacks, ButtonCallbacks,
                           MousegrabberCallbacks, MouseCallbacks, RootCallbacks,
                           ScreenCallbacks, TagCallbacks};
 
-/// Wrapper around the raw Lua context, allows the rest of the library to only
-/// use safe operations on the Lua thread.
-pub struct Lua<T>
+/// Represents the bindings to the awesome libraries.
+/// Contains the raw Lua context, as well as the struct that has all of the
+/// necessary callbacks defined that are called from Lua.
+pub struct Awesome<T>
     where T: AwesomeCallbacks + BeautifulCallbacks + ButtonCallbacks +
     ClientCallbacks + DrawinCallbacks + KeygrabberCallbacks +
     MousegrabberCallbacks + MouseCallbacks + RootCallbacks +
@@ -50,7 +51,7 @@ impl From<ConfigErr> for LuaErr {
     }
 }
 
-impl<T> Lua<T>
+impl<T> Awesome<T>
     where T: AwesomeCallbacks + BeautifulCallbacks + ButtonCallbacks +
     ClientCallbacks + DrawinCallbacks + KeygrabberCallbacks +
     MousegrabberCallbacks + MouseCallbacks + RootCallbacks +
