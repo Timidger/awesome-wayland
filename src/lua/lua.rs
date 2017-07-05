@@ -5,6 +5,8 @@ use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 
+const ALREADY_DEFINED: i32 = 0;
+
 /// Wrapper around the raw Lua context. When necessary, the raw Lua context can
 /// be retrived.
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -16,7 +18,9 @@ pub enum LuaErr {
     /// There was an error loading the configuration file
     Load(ConfigErr),
     /// Evaluation error from Lua
-    Eval(String)
+    Eval(String),
+    /// A variable was already defined.
+    AlreadyDefined(String)
 }
 
 /// Errors from loading the configuration file.
@@ -55,6 +59,7 @@ impl Lua {
         Lua(lua)
     }
 
+    /// Loads and runs the Lua file that the path points to.
     pub fn load_and_run(&mut self, path: PathBuf) -> Result<(), LuaErr> {
         let path_str = path.to_str()
             .ok_or_else(|| ConfigErr::InvalidUTF(path.clone()))
@@ -80,6 +85,52 @@ impl Lua {
 
                 Err(LuaErr::Eval(error))?
             }
+        }
+        Ok(())
+    }
+
+    /// Registers the methods in the array to the given variable name.
+    ///
+    /// The requirement for the name to be static is to ensure that memory
+    /// does not leak. The mechanism to ensure that names can be dynamically
+    /// allocated is not available at this time.
+    pub fn register_methods(&mut self, name: &'static str, methods: &[luaL_Reg])
+                            -> Result<(), LuaErr> {
+        unsafe {
+            let l = self.0;
+            // NOTE: This is safe because we guarentee that name is static
+            let c_name = CStr::from_bytes_with_nul(name.as_bytes())
+                .map_err(|_| ConfigErr::NullByte(name.into()))?;
+            let result = luaL_newmetatable(l, c_name.as_ptr());
+            if result == ALREADY_DEFINED {
+                // variable is still pushed to the stack
+                lua_pop(l, 1);
+                return Err(LuaErr::AlreadyDefined(name.into()))
+            }
+            /* Set __index to be the metatable */
+            // move meta table to top of stack
+            lua_pushvalue(l, -1);
+            // Set the __index to be the metatable
+            // NOTE Pops the value from the stack
+            lua_setfield(l, -2, c_str!("__index"));
+
+            /* Add the methods to the table */
+            lua_newtable(l);
+            luaL_setfuncs(l, methods.as_ptr(), 0);
+            // TODO This is only valid for versions >= 5.2.
+            // For old versions, there is a different way
+            // and this should support that.
+            // <= 5.1 code it is just: luaL_register
+            lua_pushvalue(l, -1);
+            // NOTE Pops the value from the stack
+            lua_setglobal(l, c_name.as_ptr());
+
+            /* Set "self" to be the metatable */
+            lua_pushvalue(l, -1);
+            lua_setmetatable(l, -2);
+
+            // Pop the table we made, as well as the metatable
+            lua_pop(l, 2);
         }
         Ok(())
     }

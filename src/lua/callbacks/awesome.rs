@@ -4,6 +4,7 @@ use lua_sys::*;
 use ::lua::Lua;
 
 pub trait Awesome {
+    fn new() -> Self;
     fn quit(&mut self, awesome: Lua);
     fn exec(&mut self, awesome: Lua);
     fn spawn(&mut self, awesome: Lua);
@@ -28,13 +29,15 @@ pub trait Awesome {
 }
 
 /// Registers a lua function in a LuaL_reg
+///
+/// Note that errors for registering the method is up to the caller
 macro_rules! register_awesome {
-    ($callback_impl:ident, $global_name:ident) => {{
+    ($callback_impl:ident, $global_name:ident, $lua:expr) => {{
         lazy_static! {
             static ref $global_name: ::std::sync::Mutex<$callback_impl> =
-                ::std::sync::Mutex::new($callback_impl);
+                ::std::sync::Mutex::new($callback_impl::new());
         }
-        register_lua!($global_name, [
+        let lua_reg = register_lua!($global_name, [
             quit,
             exec,
             spawn,
@@ -56,13 +59,15 @@ macro_rules! register_awesome {
             xrdb_get_value,
             kill,
             sync
-        ])
+        ]);
+        $lua.register_methods("awesome", &lua_reg)
     }}
 }
 
 struct AwesomeImpl;
 
 impl Awesome for AwesomeImpl {
+    fn new() -> Self {AwesomeImpl}
     fn quit(&mut self, awesome: Lua) {}
     fn exec(&mut self, awesome: Lua) {}
     fn spawn(&mut self, awesome: Lua) {}
@@ -86,9 +91,9 @@ impl Awesome for AwesomeImpl {
     fn sync(&mut self, awesome: Lua) {}
 }
 
-fn test_fn(a: AwesomeImpl, l: Lua) {
+fn test_fn(a: AwesomeImpl, mut l: Lua) {
     let mut A = a;
-    register_awesome!(AwesomeImpl, A);
+    register_awesome!(AwesomeImpl, A, l);
     A.sync(l.clone());
     A.load_image(l.clone());
     A.quit(l.clone());

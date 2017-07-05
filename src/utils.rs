@@ -40,7 +40,6 @@ macro_rules! register_lua_class_meta {
 /// Registers a lua function in a LuaL_reg
 macro_rules! register_lua {
     ($global_name:ident, $([ $( $inner:ident ),+ ])+) => {{
-        // TODO Remove this when I'm less lazy.
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> i32 {
             let mut callback = $global_name.lock()
                 .expect("Could not lock user defined callback object");
