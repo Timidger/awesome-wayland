@@ -1,7 +1,8 @@
 //! The callbacks defined by the user that is usde when called
 //! through the Lua library from user Lua code.
 
-pub trait Awesome {}
+mod awesome;
+pub use self::awesome::Awesome;
 pub trait Beautiful {}
 pub trait Button {}
 pub trait Client {}
