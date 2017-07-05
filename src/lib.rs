@@ -10,4 +10,5 @@ extern crate lua_sys;
 #[macro_use] mod utils;
 mod lua;
 
-pub use lua::Awesome;
+pub use lua::*;
+pub use utils::*;

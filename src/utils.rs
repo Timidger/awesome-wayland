@@ -37,7 +37,9 @@ macro_rules! register_lua_class_meta {
 }
 
 
-/// Registers a lua function in a LuaL_reg
+/// Registers a lua function in a LuaL_reg to call the given global identifier.
+///
+/// Do NOT use this macro directly, use the register_* macros instead.
 macro_rules! register_lua {
     ($global_name:ident, $([ $( $inner:ident ),+ ])+) => {{
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> i32 {
@@ -61,3 +63,41 @@ macro_rules! register_lua {
         }
     }
 }
+
+/// Registers a struct that implements [Awesome](callbacks/trait.Awesome.html)
+///
+/// Note that errors for registering the method is up to the caller
+#[macro_export]
+macro_rules! register_awesome {
+    ($callback_impl:ident, $global_name:ident, $lua:expr) => {{
+        lazy_static! {
+            static ref $global_name: ::std::sync::Mutex<$callback_impl> =
+                ::std::sync::Mutex::new($callback_impl::new());
+        }
+        let lua_reg = register_lua!($global_name, [
+            quit,
+            exec,
+            spawn,
+            restart,
+            connect_signal,
+            disconnect_signal,
+            emit_signal,
+            systray,
+            load_image,
+            set_preferred_icon_size,
+            register_xproperty,
+            set_xproperty,
+            get_xproperty,
+            __index,
+            __newindex,
+            xkb_set_layout_group,
+            xkb_get_layout_groub,
+            xkb_get_group_names,
+            xrdb_get_value,
+            kill,
+            sync
+        ]);
+        $lua.register_methods("awesome", &lua_reg)
+    }}
+}
+

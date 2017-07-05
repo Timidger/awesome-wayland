@@ -8,3 +8,4 @@ mod lua;
 
 pub use self::lua::{Lua, LuaErr, ConfigErr};
 pub use self::awesome::{Awesome};
+pub use self::callbacks::*;
