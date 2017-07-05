@@ -6,19 +6,19 @@ use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 
 mod callbacks;
-pub use self::callbacks::{AwesomeCallbacks, BeautifulCallbacks, ButtonCallbacks,
-                          ClientCallbacks, DrawinCallbacks, KeygrabberCallbacks,
-                          MousegrabberCallbacks, MouseCallbacks, RootCallbacks,
-                          ScreenCallbacks, TagCallbacks};
+pub use self::callbacks::{Beautiful, Button,
+                          Client, Drawin, Keygrabber,
+                          Mousegrabber, Mouse, Root,
+                          Screen, Tag};
 
 /// Represents the bindings to the awesome libraries.
 /// Contains the raw Lua context, as well as the struct that has all of the
 /// necessary callbacks defined that are called from Lua.
 pub struct Awesome<T>
-    where T: AwesomeCallbacks + BeautifulCallbacks + ButtonCallbacks +
-    ClientCallbacks + DrawinCallbacks + KeygrabberCallbacks +
-    MousegrabberCallbacks + MouseCallbacks + RootCallbacks +
-    ScreenCallbacks + TagCallbacks {
+    where T: callbacks::Awesome + Beautiful + Button +
+    Client + Drawin + Keygrabber +
+    Mousegrabber + Mouse + Root +
+    Screen + Tag {
     /// The raw Lua context
     lua: *mut lua_State,
     /// The user-provided data.
@@ -52,11 +52,11 @@ impl From<ConfigErr> for LuaErr {
 }
 
 impl<T> Awesome<T>
-    where T: AwesomeCallbacks + BeautifulCallbacks + ButtonCallbacks +
-    ClientCallbacks + DrawinCallbacks + KeygrabberCallbacks +
-    MousegrabberCallbacks + MouseCallbacks + RootCallbacks +
-    ScreenCallbacks + TagCallbacks {
-    pub fn new() -> Self {
+    where T: callbacks::Awesome + Beautiful + Button +
+    Client + Drawin + Keygrabber +
+    Mousegrabber + Mouse + Root +
+    Screen + Tag {
+    pub fn new(callbacks: T) -> Self {
         unsafe {
             let lua = luaL_newstate();
             if lua.is_null() {
@@ -64,8 +64,10 @@ impl<T> Awesome<T>
             }
             luaL_openlibs(lua);
             init_path(lua);
-            panic!()
-            //Lua(lua)
+            Awesome{
+                lua,
+                callbacks
+            }
         }
     }
 
