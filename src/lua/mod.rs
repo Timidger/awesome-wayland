@@ -4,4 +4,7 @@
 
 pub mod callbacks;
 mod awesome;
-pub use self::awesome::{Awesome, LuaErr, ConfigErr};
+mod lua;
+
+pub use self::lua::{Lua, LuaErr, ConfigErr};
+pub use self::awesome::{Awesome};
