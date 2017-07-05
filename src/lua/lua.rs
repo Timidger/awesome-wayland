@@ -7,7 +7,7 @@ use std::ffi::{CString, CStr};
 
 /// Wrapper around the raw Lua context. When necessary, the raw Lua context can
 /// be retrived.
-#[derive(Debug)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Lua(*mut lua_State);
 
 /// Errors while interacting with Lua
@@ -48,6 +48,11 @@ impl Lua {
             init_path(lua);
             Lua(lua)
         }
+    }
+
+    /// Constructs the Lua object from an already initialized Lua context.
+    pub unsafe fn from_ptr(lua: *mut lua_State) -> Self {
+        Lua(lua)
     }
 
     pub fn load_and_run(&mut self, path: PathBuf) -> Result<(), LuaErr> {
