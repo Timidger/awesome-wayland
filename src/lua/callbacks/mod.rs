@@ -1,5 +1,7 @@
-//! The callbacks defined by the user that is usde when called
-//! through the Lua library from user Lua code.
+//! These callbacks should be registered in order to be used by the Lua libraries.
+//! Only one struct can be used by each interface, but the interfaces can share
+//! as many structs as they want. It's recommended you have one struct per
+//! interface, though you can just use one struct if you wish.
 
 mod awesome;
 pub use self::awesome::Awesome;

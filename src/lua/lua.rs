@@ -10,33 +10,33 @@ const ALREADY_DEFINED: i32 = 0;
 /// Wrapper around the raw Lua context. When necessary, the raw Lua context can
 /// be retrived.
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Lua(*mut lua_State);
+pub struct Lua(pub *mut lua_State);
 
 /// Errors while interacting with Lua
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum LuaErr {
     /// There was an error loading the configuration file
-    Load(ConfigErr),
+    Load(FFIErr),
     /// Evaluation error from Lua
     Eval(String),
     /// A variable was already defined.
-    AlreadyDefined(String)
+    AlreadyDefined(String),
+    /// Could not find configuration file with the given path.
+    /// Reason given from Lua as a string.
+    FileNotFound(PathBuf, String)
 }
 
-/// Errors from loading the configuration file.
+/// Errors while interfacing with C
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub enum ConfigErr {
+pub enum FFIErr {
     /// Path had invalid UTF-8 encoding.
     InvalidUTF(PathBuf),
     /// Path contained a null byte.
-    NullByte(PathBuf),
-    /// Could not find configuration file with the given path.
-    /// Reason given from Lua as a string.
-    FileNotFound(PathBuf, String),
+    NullByte(PathBuf)
 }
 
-impl From<ConfigErr> for LuaErr {
-    fn from(err: ConfigErr) -> Self {
+impl From<FFIErr> for LuaErr {
+    fn from(err: FFIErr) -> Self {
     LuaErr::Load(err)
     }
 }
@@ -62,9 +62,9 @@ impl Lua {
     /// Loads and runs the Lua file that the path points to.
     pub fn load_and_run(&mut self, path: PathBuf) -> Result<(), LuaErr> {
         let path_str = path.to_str()
-            .ok_or_else(|| ConfigErr::InvalidUTF(path.clone()))
+            .ok_or_else(|| FFIErr::InvalidUTF(path.clone()))
             .and_then(|s| CString::new(s)
-                      .map_err(|_| ConfigErr::NullByte(path.clone())))?;
+                      .map_err(|_| FFIErr::NullByte(path.clone())))?;
         unsafe {
             let lua = &mut *self.0;
             let mut status = luaL_loadfile(lua, path_str.as_ptr());
@@ -74,7 +74,7 @@ impl Lua {
                 let error = lua_tostring(lua, -1);
                 let error = CStr::from_ptr(error).to_string_lossy().into_owned();
 
-                Err(ConfigErr::FileNotFound(path.clone(), error))?
+                Err(LuaErr::FileNotFound(path.clone(), error))?
             }
 
             // Run configuration file
@@ -100,7 +100,7 @@ impl Lua {
             let l = self.0;
             // NOTE: This is safe because we guarentee that name is static
             let c_name = CStr::from_bytes_with_nul(name.as_bytes())
-                .map_err(|_| ConfigErr::NullByte(name.into()))?;
+                .map_err(|_| FFIErr::NullByte(name.into()))?;
             let result = luaL_newmetatable(l, c_name.as_ptr());
             if result == ALREADY_DEFINED {
                 // variable is still pushed to the stack

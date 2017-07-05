@@ -1,11 +1,11 @@
 //! Defines safe functions so that the rest of the library doesn't have to use
-//! the raw Lua context directly.
+//! the raw Lua context can be used directly.
 
 
 pub mod callbacks;
 mod awesome;
 mod lua;
 
-pub use self::lua::{Lua, LuaErr, ConfigErr};
+pub use self::lua::{Lua, LuaErr, FFIErr};
 pub use self::awesome::{Awesome};
 pub use self::callbacks::*;

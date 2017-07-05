@@ -1,4 +1,9 @@
-//! Main exports of the library
+//! To use this library, you should need to authenticate at least one struct
+//! with the [callbacks](callbacks/index.html) traits. These callbacks define what Rust
+//! responds with when the appropriate global + method is called from the
+//! Lua library.
+//!
+//! See the [traits](#traits) section for more details
 
 // Library for handling C types
 extern crate libc;
