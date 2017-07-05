@@ -1,0 +1,10 @@
+[package]
+name = "awesome-wayland-lib"
+description = "Bindings and glue to interface with Awesome Lua libraries"
+version = "0.0.0"
+authors = ["Timidger <APragmaticPlace@gmail.com>"]
+
+[dependencies]
+libc = "0.2.*"
+lua-sys = { version = "0.1.*", features = [] } # No compile-time bindings
+lazy_static = "0.2"
