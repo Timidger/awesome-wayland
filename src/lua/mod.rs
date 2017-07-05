@@ -5,9 +5,25 @@ use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 
+mod callbacks;
+pub use self::callbacks::{AwesomeCallbacks, BeautifulCallbacks, ButtonCallbacks,
+                          ClientCallbacks, DrawinCallbacks, KeygrabberCallbacks,
+                          MousegrabberCallbacks, MouseCallbacks, RootCallbacks,
+                          ScreenCallbacks, TagCallbacks};
+
 /// Wrapper around the raw Lua context, allows the rest of the library to only
 /// use safe operations on the Lua thread.
-pub struct Lua(*mut lua_State);
+pub struct Lua<T>
+    where T: AwesomeCallbacks + BeautifulCallbacks + ButtonCallbacks +
+    ClientCallbacks + DrawinCallbacks + KeygrabberCallbacks +
+    MousegrabberCallbacks + MouseCallbacks + RootCallbacks +
+    ScreenCallbacks + TagCallbacks {
+    /// The raw Lua context
+    lua: *mut lua_State,
+    /// The user-provided data.
+    /// It also provides the callbacks,
+    callbacks: T
+}
 
 /// Errors while interacting with Lua
 pub enum LuaErr {
@@ -34,7 +50,11 @@ impl From<ConfigErr> for LuaErr {
     }
 }
 
-impl Lua {
+impl<T> Lua<T>
+    where T: AwesomeCallbacks + BeautifulCallbacks + ButtonCallbacks +
+    ClientCallbacks + DrawinCallbacks + KeygrabberCallbacks +
+    MousegrabberCallbacks + MouseCallbacks + RootCallbacks +
+    ScreenCallbacks + TagCallbacks {
     pub fn new() -> Self {
         unsafe {
             let lua = luaL_newstate();
@@ -43,7 +63,8 @@ impl Lua {
             }
             luaL_openlibs(lua);
             init_path(lua);
-            Lua(lua)
+            panic!()
+            //Lua(lua)
         }
     }
 
@@ -54,7 +75,7 @@ impl Lua {
             .and_then(|s| CString::new(s)
                       .map_err(|_| ConfigErr::NullByte(path.clone())))?;
         unsafe {
-            let lua = &mut *self.0;
+            let lua = &mut *self.lua;
             let mut status = luaL_loadfile(lua, path_str.as_ptr());
             if status != 0 {
                 // If something went wrong, error message is at the top of
