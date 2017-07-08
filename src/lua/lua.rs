@@ -148,5 +148,5 @@ unsafe fn init_path(lua: *mut lua_State) {
     lua_concat(lua, 3); // Concat those strings to the path
     // NOTE Pops the value from the stack
     lua_setfield(lua, 1, c_str!("path")); // Set path to the concat-ed string
-    lua_pop(lua, 2); // pop "package" and "path"
+    lua_pop(lua, 1); // pop "package"
 }
