@@ -3,13 +3,12 @@
 
 
 // TODO Move macro up and out
-#[macro_use] mod class;
-mod signal;
-mod property;
+#[macro_use] mod object;
 pub mod callbacks;
 mod awesome;
 mod lua;
 
+pub use self::object::{signal, property, class};
 pub use self::lua::{Lua, LuaErr, FFIErr};
 pub use self::awesome::{Awesome};
 pub use self::callbacks::*;

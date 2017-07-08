@@ -48,52 +48,6 @@ pub struct Class {
     newindex_miss_handler: c_int
 }
 
-/// Defines the methods associated with classes. These methods have default
-/// implementations, but can be defined by the user if they so choose.
-macro_rules! class_methods {
-    () => {
-        // TODO Give these the default impls
-        /* LUA_CLASS_META methods */
-        fn __index(&mut self, awesome: Lua) -> c_int {
-            unsafe {
-                let l = awesome.0;
-                /* Try to use the metatable first. */
-                if ::lua::class::usemetatable(l, 1, 2) {
-                    return 1
-                }
-                let class = ::lua::class::class_get(l, 1);
-            }
-            0
-        }
-        fn __newindex(&mut self, awesome: Lua) -> c_int {
-            if ::lua::class::usemetatable(l, 1, 2) {
-                return 1
-            }
-            let class_raw = class_get(l, 1);
-            if let Some(prop) = class_property_get(l, class, 2) {
-                if prop.newindex != 0 {
-                    return prop.newindex(l, checkudata(l, 1, class))
-                }
-            } else {
-                // Property didn't exist
-                if class.newindex_miss_handler != LUA_REFNIL {
-                    return class_call_handler(l, class.newindex_miss_handler);
-                }
-                if class.newindex_miss_property {
-                    return class.newindex_miss_property(l, checkudata(l, 1, class))
-                }
-            }
-            0
-        }
-
-        /* LUA_OBJECT_META methods */
-        fn __tostring(&mut self, awesome: Lua);
-        fn connect_signal(&mut self, awesome: Lua);
-        fn disconnect_signal(&mut self, awesome: Lua);
-        fn emit_signal(&mut self, awesome: Lua);
-    }
-}
-
 /// Get an object lua_class
 /// l: The lua state
 /// idx: The index of the object on the stack
