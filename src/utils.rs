@@ -5,6 +5,7 @@
 ///
 /// #Usage
 /// foo(c_str!("my string"));
+#[macro_export]
 macro_rules! c_str {
     ($s:expr) => {
         concat!($s, "\0").as_ptr() as *const i8
@@ -14,6 +15,7 @@ macro_rules! c_str {
 /// Registers a lua class' meta table.
 /// E.g adds __tostring, connect_signal, etc.
 /// For the lua class methods, us register_lua_class_meth
+#[macro_export]
 macro_rules! register_lua_class_meta {
     ($([ $( $inner:ident ),+ ])+) => {{
         // TODO Remove this when I'm less lazy.
@@ -28,7 +30,7 @@ macro_rules! register_lua_class_meta {
                 register_lua!(disconnect_signal),
                 register_lua!(emit_signal),
                 $($(register_lua!($inner)),*),*,
-                luaL_Reg {
+                ::lua_sys::luaL_Reg {
                     name: ::std::ptr::null(),
                     func: None
                 },
@@ -40,24 +42,25 @@ macro_rules! register_lua_class_meta {
 /// Registers a lua function in a LuaL_reg to call the given global identifier.
 ///
 /// Do NOT use this macro directly, use the register_* macros instead.
+#[macro_export]
 macro_rules! register_lua {
     ($global_name:ident, $([ $( $inner:ident ),+ ])+) => {{
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> i32 {
             let mut callback = $global_name.lock()
                 .expect("Could not lock user defined callback object");
-            callback.$inner(::lua::Lua::from_ptr(lua));
+            callback.$inner(::Lua::from_ptr(lua));
             0
         })*),*
             [
                 $($(register_lua!($inner)),*),*,
-                luaL_Reg {
+                ::lua_sys::luaL_Reg {
                     name: ::std::ptr::null(),
                     func: None
                 },
             ]
     }};
     ($name:ident) => {
-        luaL_Reg {
+        ::lua_sys::luaL_Reg {
             name: c_str!(stringify!($name)),
             func: Some($name)
         }
@@ -103,6 +106,7 @@ macro_rules! register_awesome {
 
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
+#[macro_export]
 macro_rules! class_methods {
     () => {
         // TODO Give these the default impls
