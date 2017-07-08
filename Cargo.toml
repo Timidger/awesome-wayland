@@ -1,5 +1,5 @@
 [package]
-name = "awesome-wayland-lib"
+name = "awesome-wayland"
 description = "Bindings and glue to interface with Awesome Lua libraries"
 version = "0.0.0"
 authors = ["Timidger <APragmaticPlace@gmail.com>"]
