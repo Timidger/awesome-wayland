@@ -100,7 +100,7 @@ macro_rules! register_awesome {
             kill,
             sync
         ]);
-        $lua.register_methods("awesome", &lua_reg)
+        $lua.register_methods("awesome\0", &lua_reg)
     }}
 }
 
