@@ -100,4 +100,3 @@ macro_rules! register_awesome {
         $lua.register_methods("awesome", &lua_reg)
     }}
 }
-

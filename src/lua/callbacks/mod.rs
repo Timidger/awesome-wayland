@@ -4,9 +4,10 @@
 //! interface, though you can just use one struct if you wish.
 
 mod awesome;
+mod button;
+
 pub use self::awesome::Awesome;
-pub trait Beautiful {}
-pub trait Button {}
+pub use self::button::Button;
 pub trait Client {}
 pub trait Drawin {}
 pub trait Keygrabber {}
@@ -15,3 +16,6 @@ pub trait Mouse {}
 pub trait Root {}
 pub trait Screen {}
 pub trait Tag {}
+
+// TODO I don't think this is needed
+pub trait Beautiful {}

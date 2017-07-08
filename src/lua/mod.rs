@@ -2,6 +2,10 @@
 //! the raw Lua context can be used directly.
 
 
+// TODO Move macro up and out
+#[macro_use] mod class;
+mod signal;
+mod property;
 pub mod callbacks;
 mod awesome;
 mod lua;

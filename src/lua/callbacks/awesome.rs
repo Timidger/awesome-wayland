@@ -1,4 +1,4 @@
-//! Callbacks for the Awesome object in the Lua libraries
+//! Callbacks for the `awesome` object in the Lua libraries
 
 use ::lua::Lua;
 
