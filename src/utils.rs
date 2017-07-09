@@ -94,7 +94,7 @@ macro_rules! register_awesome {
             __index,
             __newindex,
             xkb_set_layout_group,
-            xkb_get_layout_groub,
+            xkb_get_layout_group,
             xkb_get_group_names,
             xrdb_get_value,
             kill,

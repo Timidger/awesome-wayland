@@ -20,7 +20,7 @@ pub trait Awesome {
     fn __index(&mut self, awesome: Lua);
     fn __newindex(&mut self, awesome: Lua);
     fn xkb_set_layout_group(&mut self, awesome: Lua);
-    fn xkb_get_layout_groub(&mut self, awesome: Lua);
+    fn xkb_get_layout_group(&mut self, awesome: Lua);
     fn xkb_get_group_names(&mut self, awesome: Lua);
     fn xrdb_get_value(&mut self, awesome: Lua);
     fn kill(&mut self, awesome: Lua);
