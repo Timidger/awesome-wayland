@@ -5,13 +5,16 @@ use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 use std::ops::{Deref, DerefMut};
+use std::cell::UnsafeCell;
 
 const ALREADY_DEFINED: i32 = 0;
 
 /// Wrapper around the raw Lua context. When necessary, the raw Lua context can
 /// be retrived.
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Lua(pub *mut lua_State);
+#[derive(Debug)]
+pub struct Lua(pub UnsafeCell<*mut lua_State>);
+
+unsafe impl Send for Lua {}
 
 /// Errors while interacting with Lua
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -51,13 +54,17 @@ impl Lua {
             }
             luaL_openlibs(lua);
             init_path(lua);
-            Lua(lua)
+            Lua(UnsafeCell::new(lua))
         }
     }
 
     /// Constructs the Lua object from an already initialized Lua context.
+    /// # Safety
+    /// You should not use the passed in Lua state after this
+    /// except through the `Lua` interface (and that includes
+    /// using the raw pointer directly)
     pub unsafe fn from_ptr(lua: *mut lua_State) -> Self {
-        Lua(lua)
+        Lua(UnsafeCell::new(lua))
     }
 
     /// Loads and runs the Lua file that the path points to.
@@ -67,7 +74,7 @@ impl Lua {
             .and_then(|s| CString::new(s)
                       .map_err(|_| FFIErr::NullByte(path.clone())))?;
         unsafe {
-            let lua = &mut *self.0;
+            let lua = &mut (**self.0.get());
             let mut status = luaL_loadfile(lua, path_str.as_ptr());
             if status != 0 {
                 // If something went wrong, error message is at the top of
@@ -98,7 +105,7 @@ impl Lua {
     pub fn register_methods(&mut self, name: &'static str, methods: &[luaL_Reg])
                             -> Result<(), LuaErr> {
         unsafe {
-            let l = self.0;
+            let l = *self.0.get();
             // NOTE: This is safe because we guarentee that name is static
             let c_name = CStr::from_bytes_with_nul(name.as_bytes())
                 .map_err(|_| FFIErr::NullByte(name.into()))?;
@@ -158,7 +165,7 @@ impl Deref for Lua {
 
     fn deref(&self) -> &Self::Target {
         unsafe {
-            &*self.0
+            &**self.0.get()
         }
     }
 }
@@ -166,7 +173,7 @@ impl Deref for Lua {
 impl DerefMut for Lua {
     fn deref_mut(&mut self) -> &mut lua_State {
         unsafe {
-            &mut *self.0
+            &mut **self.0.get()
         }
     }
 }

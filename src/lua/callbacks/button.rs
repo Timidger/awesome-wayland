@@ -8,7 +8,6 @@ use libc::c_int;
 
 pub trait Button {
     class_methods!();
-    fn new() -> Self;
     /* Methods */
     fn __call(&mut self, awesome: Lua);
     /* Meta */

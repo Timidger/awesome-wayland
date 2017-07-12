@@ -7,9 +7,10 @@
 extern crate lua_sys;
 use lua_sys::*;
 
-use awesome_wayland::{Lua};
-use awesome_wayland::callbacks::Awesome;
+use awesome_wayland::{Lua, LuaErr, Awesome};
+use awesome_wayland::callbacks;
 use std::path::PathBuf;
+use std::default::Default;
 
 const SHIMS: &[&'static str] = &["awesome.lua", "beautiful.lua", "button.lua",
                                  "client.lua", "drawin.lua", "keygrabber.lua",
@@ -20,8 +21,7 @@ const SHIMS: &[&'static str] = &["awesome.lua", "beautiful.lua", "button.lua",
 struct DummyStruct;
 
 #[allow(unused_variables)]
-impl Awesome for DummyStruct {
-    fn new() -> Self { DummyStruct }
+impl callbacks::Awesome for DummyStruct {
     fn quit(&mut self, awesome: Lua) {}
     fn exec(&mut self, awesome: Lua) {}
     fn spawn(&mut self, awesome: Lua) {}
@@ -45,13 +45,47 @@ impl Awesome for DummyStruct {
     fn sync(&mut self, awesome: Lua) {}
 }
 
+impl callbacks::Button for DummyStruct {
+    fn __tostring(&mut self, awesome: Lua) {}
+    fn connect_signal(&mut self, awesome: Lua) {}
+    fn disconnect_signal(&mut self, awesome: Lua) {}
+    fn emit_signal(&mut self, awesome: Lua) {}
+    fn __call(&mut self, awesome: Lua) {}
+    fn button(&mut self, awesome: Lua) {}
+    fn modifiers(&mut self, awesome: Lua) {}
+}
+impl callbacks::Beautiful for DummyStruct {}
+impl callbacks::Client for DummyStruct {}
+impl callbacks::Drawin for DummyStruct {}
+impl callbacks::Keygrabber for DummyStruct {}
+impl callbacks::Mousegrabber for DummyStruct {}
+impl callbacks::Mouse for DummyStruct {}
+impl callbacks::Root for DummyStruct {}
+impl callbacks::Screen for DummyStruct {}
+impl callbacks::Tag for DummyStruct {}
+
+impl Default for DummyStruct {
+    fn default() -> Self {
+        DummyStruct
+    }
+}
+
+register_for_lua!(DummyStruct, AWESOME);
+
 fn main() {
-    let mut lua = Lua::new();
-    register_awesome!(DummyStruct, AWESOME, lua).unwrap();
-    lua.load_and_run(PathBuf::from("examples/basic-callback-test.lua"))
-        .unwrap_or_else(|_| {
+    register_awesome!(DummyStruct, AWESOME);
+    // TODO Other registers
+    // HERE
+    // Double lock, wait forever
+    let mut global = AWESOME.lock().unwrap();
+    let lua = &mut global.lua;
+    match lua.load_and_run(PathBuf::from("examples/basic-callback-test.lua")) {
+        Ok(_) => {},
+        Err(LuaErr::Load(_)) => {
             println!("Could not find lua file! Please run this from the root \
                       of the project directory");
             ::std::process::exit(1);
-        });
+        },
+        err => err.unwrap()
+    }
 }

@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use super::lua::{Lua, LuaErr};
 use super::callbacks::{self, Beautiful, Button, Client, Drawin, Keygrabber,
                        Mousegrabber, Mouse, Root, Screen, Tag};
+use std::sync::Mutex;
 
 /// Represents the bindings to the awesome libraries.
 /// Contains the raw Lua context, as well as the struct that has all of the
@@ -21,9 +22,9 @@ pub struct Awesome<T>
     Mousegrabber + Mouse + Root +
     Screen + Tag {
     /// The safe Lua wrapper
-    lua: Lua,
+    pub lua: Lua,
     /// The user-provided data that is operated on by the callbacks.
-    callbacks: T
+    pub callbacks: T
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]

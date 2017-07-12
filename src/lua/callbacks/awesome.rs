@@ -3,7 +3,6 @@
 use ::lua::Lua;
 
 pub trait Awesome {
-    fn new() -> Self;
     fn quit(&mut self, awesome: Lua);
     fn exec(&mut self, awesome: Lua);
     fn spawn(&mut self, awesome: Lua);

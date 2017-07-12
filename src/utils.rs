@@ -41,14 +41,15 @@ macro_rules! register_lua_class_meta {
 
 /// Registers a lua function in a LuaL_reg to call the given global identifier.
 ///
-/// Do NOT use this macro directly, use the register_* macros instead.
+/// Do NOT use this macro directly, use the register_for_lua! instead.
 #[macro_export]
 macro_rules! register_lua {
     ($global_name:ident, $([ $( $inner:ident ),+ ])+) => {{
+        use ::awesome_wayland::callbacks::Awesome;
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> i32 {
             let mut callback = $global_name.lock()
                 .expect("Could not lock user defined callback object");
-            callback.$inner(::Lua::from_ptr(lua));
+            callback.callbacks.$inner(::Lua::from_ptr(lua));
             0
         })*),*
             [
@@ -70,37 +71,39 @@ macro_rules! register_lua {
 /// Registers a struct that implements [Awesome](callbacks/trait.Awesome.html)
 ///
 /// Note that errors for registering the method is up to the caller
+///
+/// Do NOT use this macro directly, use the register_for_lua! instead.
 #[macro_export]
 macro_rules! register_awesome {
-    ($callback_impl:ident, $global_name:ident, $lua:expr) => {{
-        lazy_static! {
-            static ref $global_name: ::std::sync::Mutex<$callback_impl> =
-                ::std::sync::Mutex::new($callback_impl::new());
-        }
-        let lua_reg = register_lua!($global_name, [
-            quit,
-            exec,
-            spawn,
-            restart,
-            connect_signal,
-            disconnect_signal,
-            emit_signal,
-            systray,
-            load_image,
-            set_preferred_icon_size,
-            register_xproperty,
-            set_xproperty,
-            get_xproperty,
-            __index,
-            __newindex,
-            xkb_set_layout_group,
-            xkb_get_layout_group,
-            xkb_get_group_names,
-            xrdb_get_value,
-            kill,
-            sync
-        ]);
-        $lua.register_methods("awesome\0", &lua_reg)
+    ($callback_impl:ident, $global_name:ident) => {{
+        let lua_reg = {
+            register_lua!($global_name, [
+                quit,
+                exec,
+                spawn,
+                restart,
+                connect_signal,
+                disconnect_signal,
+                emit_signal,
+                systray,
+                load_image,
+                set_preferred_icon_size,
+                register_xproperty,
+                set_xproperty,
+                get_xproperty,
+                __index,
+                __newindex,
+                xkb_set_layout_group,
+                xkb_get_layout_group,
+                xkb_get_group_names,
+                xrdb_get_value,
+                kill,
+                sync
+            ])
+        };
+        let mut global = $global_name.lock().unwrap();
+        let lua = &mut global.lua;
+        lua.register_methods("awesome\0", &lua_reg)
     }}
 }
 
@@ -113,7 +116,7 @@ macro_rules! class_methods {
         /* LUA_CLASS_META methods */
         fn __index(&mut self, awesome: Lua) -> c_int {
             unsafe {
-                let l = awesome.0;
+                let l = *awesome.0.get();
                 /* Try to use the metatable first. */
                 if ::lua::class::usemetatable(l, 1, 2) {
                     return 1
@@ -150,5 +153,16 @@ macro_rules! class_methods {
         fn connect_signal(&mut self, awesome: Lua);
         fn disconnect_signal(&mut self, awesome: Lua);
         fn emit_signal(&mut self, awesome: Lua);
+    }
+}
+
+#[macro_export]
+macro_rules! register_for_lua {
+    ($callback_impl:ident, $global_name:ident) => {
+        use ::std::sync::Mutex;
+        lazy_static! {
+            static ref $global_name: Mutex<Awesome<$callback_impl>> =
+                Mutex::new(Awesome::new());
+        }
     }
 }
