@@ -4,6 +4,7 @@
 use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
+use std::ops::{Deref, DerefMut};
 
 const ALREADY_DEFINED: i32 = 0;
 
@@ -149,4 +150,23 @@ unsafe fn init_path(lua: *mut lua_State) {
     // NOTE Pops the value from the stack
     lua_setfield(lua, 1, c_str!("path")); // Set path to the concat-ed string
     lua_pop(lua, 1); // pop "package"
+}
+
+
+impl Deref for Lua {
+    type Target = lua_State;
+
+    fn deref(&self) -> &Self::Target {
+        unsafe {
+            &*self.0
+        }
+    }
+}
+
+impl DerefMut for Lua {
+    fn deref_mut(&mut self) -> &mut lua_State {
+        unsafe {
+            &mut *self.0
+        }
+    }
 }
