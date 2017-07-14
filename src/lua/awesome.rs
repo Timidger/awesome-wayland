@@ -21,8 +21,6 @@ pub struct Awesome<T>
     Client + Drawin + Keygrabber +
     Mousegrabber + Mouse + Root +
     Screen + Tag {
-    /// The safe Lua wrapper
-    pub lua: Lua,
     /// The user-provided data that is operated on by the callbacks.
     pub callbacks: T
 }
@@ -45,10 +43,8 @@ impl<T> Awesome<T>
     /// Constructs a new `Awesome` instance, and calls the default constructor
     /// for the `T` value.
     pub fn new() -> Self {
-        let lua = Lua::new();
         let callbacks = T::default();
         Awesome{
-            lua,
             callbacks
         }
     }
@@ -59,8 +55,8 @@ impl<T> Awesome<T>
     Keygrabber + Mousegrabber + Mouse + Root + Screen + Tag {
 
     /// Load the rc.lua configuration file from the specified path.
-    pub fn load_configuration(&mut self, path: PathBuf)
+    pub fn load_configuration(&mut self, path: PathBuf, lua: &Lua)
                               -> Result<(), AwesomeErr> {
-        Ok(self.lua.load_and_run(path)?)
+        Ok(lua.load_and_run(path)?)
     }
 }

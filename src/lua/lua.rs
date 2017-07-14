@@ -15,6 +15,7 @@ const ALREADY_DEFINED: i32 = 0;
 pub struct Lua(pub UnsafeCell<*mut lua_State>);
 
 unsafe impl Send for Lua {}
+unsafe impl Sync for Lua {}
 
 /// Errors while interacting with Lua
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -68,7 +69,7 @@ impl Lua {
     }
 
     /// Loads and runs the Lua file that the path points to.
-    pub fn load_and_run(&mut self, path: PathBuf) -> Result<(), LuaErr> {
+    pub fn load_and_run(&self, path: PathBuf) -> Result<(), LuaErr> {
         let path_str = path.to_str()
             .ok_or_else(|| FFIErr::InvalidUTF(path.clone()))
             .and_then(|s| CString::new(s)
@@ -102,7 +103,7 @@ impl Lua {
     /// The requirement for the name to be static is to ensure that memory
     /// does not leak. The mechanism to ensure that names can be dynamically
     /// allocated is not available at this time.
-    pub fn register_methods(&mut self, name: &'static str, methods: &[luaL_Reg])
+    pub fn register_methods(&self, name: &'static str, methods: &[luaL_Reg])
                             -> Result<(), LuaErr> {
         unsafe {
             let l = *self.0.get();

@@ -1,6 +1,7 @@
 //! Attempts to load the shim files used in basic Awesome testing.
 //! This is the most minimal stress test to ensure globals are defined
 //! correctly by the backend.
+#![allow(unused_variables)]
 
 #[macro_use] extern crate awesome_wayland;
 #[macro_use] extern crate lazy_static;
@@ -18,7 +19,7 @@ const SHIMS: &[&'static str] = &["awesome.lua", "beautiful.lua", "button.lua",
                                  "screen.lua", "tag.lua"];
 
 // Contains no state, just here so we can register the libs.
-struct DummyStruct;
+pub struct DummyStruct;
 
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
@@ -73,13 +74,10 @@ impl Default for DummyStruct {
 register_for_lua!(DummyStruct, AWESOME);
 
 fn main() {
-    register_awesome!(DummyStruct, AWESOME);
+    register_awesome!(DummyStruct, AWESOME).unwrap();
     // TODO Other registers
-    // HERE
-    // Double lock, wait forever
-    let mut global = AWESOME.lock().unwrap();
-    let lua = &mut global.lua;
-    match lua.load_and_run(PathBuf::from("examples/basic-callback-test.lua")) {
+
+    match LUA.load_and_run(PathBuf::from("examples/basic-callback-test.lua")) {
         Ok(_) => {},
         Err(LuaErr::Load(_)) => {
             println!("Could not find lua file! Please run this from the root \

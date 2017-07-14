@@ -101,9 +101,7 @@ macro_rules! register_awesome {
                 sync
             ])
         };
-        let mut global = $global_name.lock().unwrap();
-        let lua = &mut global.lua;
-        lua.register_methods("awesome\0", &lua_reg)
+        LUA.register_methods("awesome\0", &lua_reg)
     }}
 }
 
@@ -156,13 +154,20 @@ macro_rules! class_methods {
     }
 }
 
+/// Registers a new instance of the passed-in user object as a global
+/// singleton that will be used for all of the Lua callbacks.
+///
+/// This also registers a global named `LUA` that is an instance of
+/// [Lua](../awesome_wayland/struct.Lua.html). This is used by both the user
+/// and internally by the library, which is why it needs a pre-defined name.
 #[macro_export]
 macro_rules! register_for_lua {
     ($callback_impl:ident, $global_name:ident) => {
-        use ::std::sync::Mutex;
+        use ::std::sync::{Mutex, Arc};
         lazy_static! {
-            static ref $global_name: Mutex<Awesome<$callback_impl>> =
+            pub static ref $global_name: Mutex<Awesome<$callback_impl>> =
                 Mutex::new(Awesome::new());
+            pub static ref LUA: Arc<Lua> = Arc::new(Lua::new());
         }
     }
 }
