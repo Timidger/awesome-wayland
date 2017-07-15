@@ -11,6 +11,7 @@ mod keygrabber;
 mod mousegrabber;
 mod mouse;
 mod root;
+mod screen;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;
@@ -20,7 +21,7 @@ pub use self::keygrabber::Keygrabber;
 pub use self::mousegrabber::Mousegrabber;
 pub use self::mouse::Mouse;
 pub use self::root::Root;
-pub trait Screen {}
+pub use self::screen::Screen;
 pub trait Tag {}
 
 // TODO I don't think this is needed

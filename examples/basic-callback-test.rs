@@ -214,7 +214,29 @@ impl callbacks::Root for DummyStruct {
         __newindex
     ]);
 }
-impl callbacks::Screen for DummyStruct {}
+impl callbacks::Screen for DummyStruct {
+    default_impl!([
+        add_signal,
+        connect_signal,
+        disconnect_signal,
+        emit_signal,
+        instances,
+        set_index_miss_handler,
+        set_newindex_miss_handler,
+        count,
+        __index,
+        __newindex,
+        __call,
+        fake_add,
+        fake_remove,
+        fake_resize,
+        swap,
+        geometry,
+        index,
+        outputs,
+        workarea
+    ]);
+}
 impl callbacks::Tag for DummyStruct {}
 
 impl Default for DummyStruct {
