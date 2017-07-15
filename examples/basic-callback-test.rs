@@ -237,7 +237,22 @@ impl callbacks::Screen for DummyStruct {
         workarea
     ]);
 }
-impl callbacks::Tag for DummyStruct {}
+impl callbacks::Tag for DummyStruct {
+    default_impl!([
+        add_signal,
+        connect_signal,
+        disconnect_signal,
+        emit_signal,
+        instances,
+        set_index_miss_handler,
+        set_newindex_miss_handler,
+        __call,
+        clients,
+        name,
+        selected,
+        activated
+    ]);
+}
 
 impl Default for DummyStruct {
     fn default() -> Self {

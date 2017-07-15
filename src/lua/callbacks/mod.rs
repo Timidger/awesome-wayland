@@ -12,6 +12,7 @@ mod mousegrabber;
 mod mouse;
 mod root;
 mod screen;
+mod tag;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;
@@ -22,7 +23,7 @@ pub use self::mousegrabber::Mousegrabber;
 pub use self::mouse::Mouse;
 pub use self::root::Root;
 pub use self::screen::Screen;
-pub trait Tag {}
+pub use self::tag::Tag;
 
 // TODO I don't think this is needed
 pub trait Beautiful {}
