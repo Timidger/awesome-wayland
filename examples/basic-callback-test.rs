@@ -146,8 +146,40 @@ impl callbacks::Client for DummyStruct {
         first_tag
     ]);
 }
-impl callbacks::Drawin for DummyStruct {}
-impl callbacks::Keygrabber for DummyStruct {}
+impl callbacks::Drawin for DummyStruct {
+    default_impl!([
+        add_signal,
+        connect_signal,
+        disconnect_signal,
+        emit_signal,
+        instances,
+        set_index_miss_handler,
+        set_newindex_miss_handler,
+        __call,
+        geometry,
+        drawable,
+        visible,
+        ontop,
+        cursor,
+        x,
+        y,
+        width,
+        height,
+        type_,
+        shape_bounding,
+        shape_clip,
+        shape_input
+    ]);
+}
+impl callbacks::Keygrabber for DummyStruct {
+    default_impl!([
+        run,
+        stop,
+        isrunning,
+        __index,
+        __newindex
+    ]);
+}
 impl callbacks::Mousegrabber for DummyStruct {}
 impl callbacks::Mouse for DummyStruct {}
 impl callbacks::Root for DummyStruct {}

@@ -1,4 +1,4 @@
-//! Callbacks for the `client` object in the Lua libraries
+//! Callbacks for the `drawin` object in the Lua libraries
 
 use ::lua::Lua;
 use libc::c_int;
