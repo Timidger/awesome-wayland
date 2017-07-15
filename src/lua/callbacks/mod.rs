@@ -9,6 +9,7 @@ mod client;
 mod drawin;
 mod keygrabber;
 mod mousegrabber;
+mod mouse;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;
@@ -16,7 +17,7 @@ pub use self::client::Client;
 pub use self::drawin::Drawin;
 pub use self::keygrabber::Keygrabber;
 pub use self::mousegrabber::Mousegrabber;
-pub trait Mouse {}
+pub use self::mouse::Mouse;
 pub trait Root {}
 pub trait Screen {}
 pub trait Tag {}

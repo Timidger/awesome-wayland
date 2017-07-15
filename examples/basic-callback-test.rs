@@ -189,7 +189,16 @@ impl callbacks::Mousegrabber for DummyStruct {
         __newindex
     ]);
 }
-impl callbacks::Mouse for DummyStruct {}
+impl callbacks::Mouse for DummyStruct {
+    default_impl!([
+        __index,
+        __newindex,
+    coords,
+        object_under_pointer,
+        set_index_miss_handler,
+        set_newindex_miss_handler
+    ]);
+}
 impl callbacks::Root for DummyStruct {}
 impl callbacks::Screen for DummyStruct {}
 impl callbacks::Tag for DummyStruct {}
