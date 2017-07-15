@@ -10,6 +10,7 @@ mod drawin;
 mod keygrabber;
 mod mousegrabber;
 mod mouse;
+mod root;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;
@@ -18,7 +19,7 @@ pub use self::drawin::Drawin;
 pub use self::keygrabber::Keygrabber;
 pub use self::mousegrabber::Mousegrabber;
 pub use self::mouse::Mouse;
-pub trait Root {}
+pub use self::root::Root;
 pub trait Screen {}
 pub trait Tag {}
 

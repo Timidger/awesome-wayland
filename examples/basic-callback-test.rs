@@ -199,7 +199,21 @@ impl callbacks::Mouse for DummyStruct {
         set_newindex_miss_handler
     ]);
 }
-impl callbacks::Root for DummyStruct {}
+impl callbacks::Root for DummyStruct {
+    default_impl!([
+        buttons,
+        keys,
+        cursor,
+        fake_input,
+        drawins,
+        wallpaper,
+        size,
+        size_mm,
+        tags,
+        __index,
+        __newindex
+    ]);
+}
 impl callbacks::Screen for DummyStruct {}
 impl callbacks::Tag for DummyStruct {}
 
