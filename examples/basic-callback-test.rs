@@ -180,7 +180,15 @@ impl callbacks::Keygrabber for DummyStruct {
         __newindex
     ]);
 }
-impl callbacks::Mousegrabber for DummyStruct {}
+impl callbacks::Mousegrabber for DummyStruct {
+    default_impl!([
+        run,
+        stop,
+        isrunning,
+        __index,
+        __newindex
+    ]);
+}
 impl callbacks::Mouse for DummyStruct {}
 impl callbacks::Root for DummyStruct {}
 impl callbacks::Screen for DummyStruct {}
