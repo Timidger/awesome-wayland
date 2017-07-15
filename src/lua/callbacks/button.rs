@@ -14,6 +14,8 @@ pub trait Button {
     object_methods_meta!(button);
     class_methods_meta!();
     /* Properties  */
-    fn button(&mut self, awesome: Lua);
-    fn modifiers(&mut self, awesome: Lua);
+    properties!([
+        button,
+        modifiers
+    ]);
 }
