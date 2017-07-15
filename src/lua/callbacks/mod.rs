@@ -6,11 +6,12 @@
 mod awesome;
 mod button;
 mod client;
+mod drawin;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;
 pub use self::client::Client;
-pub trait Drawin {}
+pub use self::drawin::Drawin;
 pub trait Keygrabber {}
 pub trait Mousegrabber {}
 pub trait Mouse {}
