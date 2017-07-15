@@ -180,3 +180,13 @@ macro_rules! register_for_lua {
         }
     }
 }
+
+/// Defines properties for the method
+/// Eventually, this will automatically set the correct values in lua
+/// so that they can be used as accessors, e.g []
+/// For now, it just defines them
+macro_rules! properties {
+    ($([ $( $inner:ident ),+ ])+) => {
+        $($(fn $inner(&mut self, lua: Lua);)*),*
+    };
+}

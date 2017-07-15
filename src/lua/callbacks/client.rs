@@ -28,5 +28,44 @@ pub trait Client {
     fn titlebar_left(&mut self, awesome: Lua);
     fn get_icon(&mut self, awesome: Lua);
     /* Properties */
-    // TODO
+    properties!([
+        name,
+        transient_for,
+        skip_taskbar,
+        content,
+        type_,
+        class,
+        instance,
+        role,
+        pid,
+        leader_window,
+        machine,
+        icon_name,
+        screen,
+        hidden,
+        minimized,
+        fullscreen,
+        modal,
+        group_window,
+        maximized,
+        maximized_horizontal,
+        maximized_vertical,
+        icon,
+        icon_sizes,
+        ontop,
+        above,
+        below,
+        sticky,
+        size_hints_honor,
+        urgent,
+        size_hints,
+        focusable,
+        shape_bounding,
+        shape_clip,
+        shape_input,
+        startup_id,
+        client_shape_bounding,
+        client_shape_clip,
+        first_tag
+    ]);
 }

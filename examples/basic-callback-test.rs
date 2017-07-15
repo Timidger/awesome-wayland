@@ -104,6 +104,47 @@ impl callbacks::Client for DummyStruct {
         titlebar_left,
         get_icon
     ]);
+    // Properties
+    default_impl!([
+        name,
+        transient_for,
+        skip_taskbar,
+        content,
+        type_,
+        class,
+        instance,
+        role,
+        pid,
+        leader_window,
+        machine,
+        icon_name,
+        screen,
+        hidden,
+        minimized,
+        fullscreen,
+        modal,
+        group_window,
+        maximized,
+        maximized_horizontal,
+        maximized_vertical,
+        icon,
+        icon_sizes,
+        ontop,
+        above,
+        below,
+        sticky,
+        size_hints_honor,
+        urgent,
+        size_hints,
+        focusable,
+        shape_bounding,
+        shape_clip,
+        shape_input,
+        startup_id,
+        client_shape_bounding,
+        client_shape_clip,
+        first_tag
+    ]);
 }
 impl callbacks::Drawin for DummyStruct {}
 impl callbacks::Keygrabber for DummyStruct {}
