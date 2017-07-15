@@ -4,6 +4,7 @@
 
 use libc::{c_int, c_uint};
 use lua_sys::*;
+use std::rc::Rc;
 use ::lua::Lua;
 use super::signal::Signal;
 use super::property::Property;
@@ -28,21 +29,20 @@ trait Object: ::std::any::Any {
 pub struct Class {
     name: String,
     signals: Vec<Signal>,
-    // TODO Something better than a pointer...
-    parent: *mut Class,
+    // TODO Putting it an Rc, cause idk what else to put it in
+    parent: Rc<Class>,
     /// Method that allocates new objects for the class.
     allocator: AllocatorF,
     /// Method that is called when the object is garbage collected.
     collector: CollectorF,
     properties: Vec<Property>,
-    // TODO These will be func pointers, get better name
     index_miss_prop: PropF,
     newindex_miss_prop: PropF,
     checker: CheckerF,
-    // TODO Do these need to be c_int/c_uint?
-    instances: c_uint,
+    instances: i32,
     tostring: PropF,
-    // TODO Do we need these?
+    // TODO Do we need these? These are pointers to methods on the stack
+    // And are wildly unsafe. See how they are used first
     index_miss_handler: c_int,
     newindex_miss_handler: c_int
 }
