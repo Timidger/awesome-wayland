@@ -120,11 +120,23 @@ macro_rules! class_methods {
             // TODO luaA_class_newindex
             0
         }
+    }
+}
 
+/// Defines the meta methods associated with classes. These methods have default
+/// implementations, but can be defined by the user if they so choose.
+macro_rules! class_methods_meta {
+    ($prefix:ident) => {
         /* LUA_OBJECT_META methods */
-        fn __tostring(&mut self, awesome: Lua);
-        fn connect_signal(&mut self, awesome: Lua);
-        fn disconnect_signal(&mut self, awesome: Lua);
+        fn __tostring(&mut self, awesome: Lua) {
+            // TODO implement
+        }
+        fn connect_signal(&mut self, awesome: Lua) {
+            // TODO implement
+        }
+        fn disconnect_signal(&mut self, awesome: Lua) {
+            // TODO implement
+        }
         fn emit_signal(&mut self, awesome: Lua);
     }
 }
