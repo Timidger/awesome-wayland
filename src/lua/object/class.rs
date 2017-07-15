@@ -21,8 +21,7 @@ pub type CheckerF = fn(&mut Object) -> bool;
 ///
 /// These can be downcasted into a concrete class type if necessary.
 trait Object: ::std::any::Any {
-    // TODO Objects need to be able to return signals
-    //fn signals() -> Vec<Signal>;
+    fn signals(&self) -> Vec<Signal>;
 }
 
 /// A Lua object that is a class.
