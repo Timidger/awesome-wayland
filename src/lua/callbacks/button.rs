@@ -13,8 +13,7 @@ pub trait Button {
     /* Meta */
     // TODO impl these macros/constants
     // LUA_OBJECT_META(button)
-    // LUA_CLASS_META
-    /* Attributes */
+    /* Properties  */
     fn button(&mut self, awesome: Lua);
     fn modifiers(&mut self, awesome: Lua);
 }
