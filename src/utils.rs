@@ -107,37 +107,59 @@ macro_rules! register_awesome {
 
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
+///
+/// Equiv to the C macro LUA_CLASS_METHODS(prefix)
 #[macro_export]
 macro_rules! class_methods {
-    () => {
-        // TODO Give these the default impls
-        /* LUA_CLASS_META methods */
-        fn __index(&mut self, awesome: Lua) -> c_int {
-            // TODO luaA_class_index
-            0
-        }
-        fn __newindex(&mut self, awesome: Lua) -> c_int {
-            // TODO luaA_class_newindex
-            0
-        }
+    ($prefix:ident) => {
+        // TODO Add default impls that call:
+        // TODO ${prefix}_<method_name>
+        // or perhaps ${prefix}::<method_name>
+        fn add_signal(&mut self, awesome: Lua);
+        fn connect_signal(&mut self, awesome: Lua);
+        fn disconnect_signal(&mut self, awesome: Lua);
+        fn emit_signal(&mut self, awesome: Lua);
+        fn instances(&mut self, awesome: Lua);
+        fn set_index_miss_handler(&mut self, awesome: Lua);
+        fn set_newindex_miss_handler(&mut self, awesome: Lua);
     }
 }
 
 /// Defines the meta methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
+///
+/// Equiv to the C macro LUA_CLASS_META
 macro_rules! class_methods_meta {
+    () => {
+        // TODO Give these the default impls
+        /* LUA_CLASS_META methods */
+        fn __index_meta(&mut self, awesome: Lua) -> c_int {
+            // TODO luaA_class_index
+            0
+        }
+        fn __newindex_meta(&mut self, awesome: Lua) -> c_int {
+            // TODO luaA_class_newindex
+            0
+        }
+
+    }
+}
+
+/// Object meta methods with default implementation
+///
+/// Equiv to the C macro LUA_OBJECT_META(prefix)
+macro_rules! object_methods_meta {
     ($prefix:ident) => {
         /* LUA_OBJECT_META methods */
-        fn __tostring(&mut self, awesome: Lua) {
+        fn __tostring_meta(&mut self, awesome: Lua) {
             // TODO implement
         }
-        fn connect_signal(&mut self, awesome: Lua) {
+        fn connect_signal_meta(&mut self, awesome: Lua) {
             // TODO implement
         }
-        fn disconnect_signal(&mut self, awesome: Lua) {
+        fn disconnect_signal_meta(&mut self, awesome: Lua) {
             // TODO implement
         }
-        fn emit_signal(&mut self, awesome: Lua);
     }
 }
 
