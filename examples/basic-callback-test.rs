@@ -21,42 +21,90 @@ const SHIMS: &[&'static str] = &["awesome.lua", "beautiful.lua", "button.lua",
 // Contains no state, just here so we can register the libs.
 pub struct DummyStruct;
 
+/// Defines the the default impl of a callback to do nothing.
+/// Save on a LOT of typing
+macro_rules! default_impl{
+    ($([ $( $inner:ident ),+ ])+) => {
+        $($(fn $inner(&mut self, lua: Lua) {})*),*
+    };
+}
+
+
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
-    fn quit(&mut self, awesome: Lua) {}
-    fn exec(&mut self, awesome: Lua) {}
-    fn spawn(&mut self, awesome: Lua) {}
-    fn restart(&mut self, awesome: Lua) {}
-    fn connect_signal(&mut self, awesome: Lua) {}
-    fn disconnect_signal(&mut self, awesome: Lua) {}
-    fn emit_signal(&mut self, awesome: Lua) {}
-    fn systray(&mut self, awesome: Lua) {}
-    fn load_image(&mut self, awesome: Lua) {}
-    fn set_preferred_icon_size(&mut self, awesome: Lua) {}
-    fn register_xproperty(&mut self, awesome: Lua) {}
-    fn set_xproperty(&mut self, awesome: Lua) {}
-    fn get_xproperty(&mut self, awesome: Lua) {}
-    fn __index(&mut self, awesome: Lua) {}
-    fn __newindex(&mut self, awesome: Lua) {}
-    fn xkb_set_layout_group(&mut self, awesome: Lua) {}
-    fn xkb_get_layout_group(&mut self, awesome: Lua) {}
-    fn xkb_get_group_names(&mut self, awesome: Lua) {}
-    fn xrdb_get_value(&mut self, awesome: Lua) {}
-    fn kill(&mut self, awesome: Lua) {}
-    fn sync(&mut self, awesome: Lua) {}
+    default_impl!([
+        quit,
+        exec,
+        spawn,
+        restart,
+        connect_signal,
+        disconnect_signal,
+        emit_signal,
+        systray,
+        load_image,
+        set_preferred_icon_size,
+        register_xproperty,
+        set_xproperty,
+        get_xproperty,
+        __index,
+        __newindex,
+        xkb_set_layout_group,
+        xkb_get_layout_group,
+        xkb_get_group_names,
+        xrdb_get_value,
+        kill,
+        sync
+    ]);
 }
 
 impl callbacks::Button for DummyStruct {
-    fn __tostring(&mut self, awesome: Lua) {}
-    fn connect_signal(&mut self, awesome: Lua) {}
-    fn disconnect_signal(&mut self, awesome: Lua) {}
-    fn emit_signal(&mut self, awesome: Lua) {}
-    fn __call(&mut self, awesome: Lua) {}
-    fn button(&mut self, awesome: Lua) {}
-    fn modifiers(&mut self, awesome: Lua) {}
+    default_impl!([
+        __tostring_meta,
+        connect_signal,
+        disconnect_signal,
+        emit_signal,
+        __call,
+        button,
+        modifiers,
+        add_signal,
+        instances,
+        set_index_miss_handler,
+        set_newindex_miss_handler
+    ]);
 }
+
+// TODO Remove
 impl callbacks::Beautiful for DummyStruct {}
-impl callbacks::Client for DummyStruct {}
+
+impl callbacks::Client for DummyStruct {
+    default_impl!([
+        add_signal,
+        connect_signal,
+        disconnect_signal,
+        emit_signal,
+        instances,
+        set_index_miss_handler,
+        set_newindex_miss_handler,
+        get,
+        __index,
+        __newindex,
+        keys,
+        isvisible,
+        geometry,
+        apply_size_hints,
+        tags,
+        kill,
+        swap,
+        raise,
+        lower,
+        unmanange,
+        titlebar_top,
+        titlebar_right,
+        titlebar_bottom,
+        titlebar_left,
+        get_icon
+    ]);
+}
 impl callbacks::Drawin for DummyStruct {}
 impl callbacks::Keygrabber for DummyStruct {}
 impl callbacks::Mousegrabber for DummyStruct {}
