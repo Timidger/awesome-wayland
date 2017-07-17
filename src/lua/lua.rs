@@ -12,7 +12,7 @@ const ALREADY_DEFINED: i32 = 0;
 /// Wrapper around the raw Lua context. When necessary, the raw Lua context can
 /// be retrived.
 #[derive(Debug)]
-pub struct Lua(pub UnsafeCell<*mut lua_State>);
+pub struct Lua(pub UnsafeCell<lua_State>);
 
 unsafe impl Send for Lua {}
 unsafe impl Sync for Lua {}
@@ -55,7 +55,7 @@ impl Lua {
             }
             luaL_openlibs(lua);
             init_path(lua);
-            Lua(UnsafeCell::new(lua))
+            Lua(UnsafeCell::new(*lua))
         }
     }
 
@@ -65,7 +65,7 @@ impl Lua {
     /// except through the `Lua` interface (and that includes
     /// using the raw pointer directly)
     pub unsafe fn from_ptr(lua: *mut lua_State) -> Self {
-        Lua(UnsafeCell::new(lua))
+        Lua(UnsafeCell::new(*lua))
     }
 
     /// Loads and runs the Lua file that the path points to.
@@ -75,7 +75,7 @@ impl Lua {
             .and_then(|s| CString::new(s)
                       .map_err(|_| FFIErr::NullByte(path.clone())))?;
         unsafe {
-            let lua = &mut (**self.0.get());
+            let lua = &mut (*self.0.get());
             let mut status = luaL_loadfile(lua, path_str.as_ptr());
             if status != 0 {
                 // If something went wrong, error message is at the top of
@@ -106,7 +106,7 @@ impl Lua {
     pub fn register_methods(&self, name: &'static str, methods: &[luaL_Reg])
                             -> Result<(), LuaErr> {
         unsafe {
-            let l = *self.0.get();
+            let l = self.0.get();
             // NOTE: This is safe because we guarentee that name is static
             let c_name = CStr::from_bytes_with_nul(name.as_bytes())
                 .map_err(|_| FFIErr::NullByte(name.into()))?;
@@ -166,7 +166,7 @@ impl Deref for Lua {
 
     fn deref(&self) -> &Self::Target {
         unsafe {
-            &**self.0.get()
+            &*self.0.get()
         }
     }
 }
@@ -174,7 +174,7 @@ impl Deref for Lua {
 impl DerefMut for Lua {
     fn deref_mut(&mut self) -> &mut lua_State {
         unsafe {
-            &mut **self.0.get()
+            &mut *self.0.get()
         }
     }
 }
