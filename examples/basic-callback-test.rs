@@ -13,11 +13,6 @@ use awesome_wayland::callbacks;
 use std::path::PathBuf;
 use std::default::Default;
 
-const SHIMS: &[&'static str] = &["awesome.lua", "beautiful.lua", "button.lua",
-                                 "client.lua", "drawin.lua", "keygrabber.lua",
-                                 "mousegrabber.lua", "mouse.lua", "root.lua",
-                                 "screen.lua", "tag.lua"];
-
 // Contains no state, just here so we can register the libs.
 pub struct DummyStruct;
 
