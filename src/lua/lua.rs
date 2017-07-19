@@ -53,7 +53,6 @@ impl Lua {
                 panic!("luaL_newstate returned NULL");
             }
             luaL_openlibs(lua);
-            init_path(lua);
             Lua(lua)
         }
     }
@@ -142,21 +141,66 @@ impl Lua {
         }
         Ok(())
     }
-}
 
+    /// Loads the library given by `lib_path` and stores the result
+    /// in a global named `name`.
+    pub fn load_library(&self, name: &str, lib_path: PathBuf)
+                        -> Result<(), LuaErr> {
+        unsafe {
+            let c_name = CString::new(name)
+                .expect("Name contained null bytes");
+            self.load_and_run(lib_path)?;
+            println!("Setting global to {:#?}", c_name);
+            lua_setglobal(self.0, c_name.as_ptr());
+            // TODO needed?
+            ::std::mem::forget(c_name);
+        }
+        Ok(())
+    }
 
-/// Sets up the awesome libraries, and then executes "rc.lua".
-unsafe fn init_path(lua: *mut lua_State) {
-    // Sets up the global Lua path
-    lua_getglobal(lua, c_str!("package")); // Push "package" to stack
-    lua_getfield(lua, 1, c_str!("path")); // Push current path to stack
-    // Push strings to stack
-    lua_pushfstring(lua, c_str!(";/usr/share/awesome/lib/?.lua;"));
-    lua_pushfstring(lua, c_str!(";/usr/share/awesome/lib/?/init.lua;"));
-    lua_concat(lua, 3); // Concat those strings to the path
-    // NOTE Pops the value from the stack
-    lua_setfield(lua, 1, c_str!("path")); // Set path to the concat-ed string
-    lua_pop(lua, 1); // pop "package"
+    /// Adds a variable number of paths to the lookup path within lua.
+    /// These lookup path is used to find libraries.
+    ///
+    /// Note that these values are appended on to the current lookup path.
+    pub fn add_lib_lookup_path(&self, paths: &[PathBuf]) -> Result<(), LuaErr> {
+        let len = paths.len();
+        unsafe {
+            let lua = self.0;
+            // Push these on to the stack
+            lua_getglobal(lua, c_str!("package"));
+            lua_getfield(lua, 1, c_str!("path"));
+            for path in paths {
+                let c_path = path.to_str()
+                    .ok_or_else(|| FFIErr::InvalidUTF(path.clone()))
+                    .and_then(|s| CString::new(s)
+                              .map_err(|_| FFIErr::NullByte(path.clone())))?;
+                lua_pushfstring(lua, c_path.as_ptr());
+                // TODO needed?
+                ::std::mem::forget(c_path);
+            }
+            // concatenate with thing on top of the stack when we were called
+            // + 1 because we want to include the path.
+            lua_concat(lua, (len + 1) as i32);
+            // Now set the path to that value
+            lua_setfield(lua, 1, c_str!("path"));
+            // pop "package"
+            lua_pop(lua, 1);
+        }
+        Ok(())
+    }
+
+    /// Sets up the lookup path to include the default awesoem libs.
+    /// These libraries are found in `/usr/share/awesome/lib`.
+    ///
+    /// Note that these values are added to the current lookup path,
+    /// so if you want them to take precedence call this method earlier than
+    /// other methods that modify the path
+    /// (e.g [add_lib_lookup_path](add_lib_lookup_path)).
+    pub fn add_default_awesome_libs(&self) {
+        self.add_lib_lookup_path(&[";/usr/share/awesome/lib/?.lua;".into(),
+                                   ";/usr/share/awesome/lib/?/init.lua;".into()
+        ]);
+    }
 }
 
 
