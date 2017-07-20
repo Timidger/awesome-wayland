@@ -8,11 +8,34 @@ use libc::c_int;
 
 pub trait Button {
     /* Methods */
-    class_methods!(button);
-    fn __call(&mut self, awesome: Lua);
+    fn button_add_signal(&mut self, awesome: Lua);
+    fn button_connect_signal(&mut self, awesome: Lua);
+    fn button_disconnect_signal(&mut self, awesome: Lua);
+    fn button_emit_signal(&mut self, awesome: Lua);
+    fn button_instances(&mut self, awesome: Lua);
+    fn button_set_index_miss_handler(&mut self, awesome: Lua);
+    fn button_set_newindex_miss_handler(&mut self, awesome: Lua);
+    fn button___call(&mut self, awesome: Lua);
     /* Meta */
-    object_methods_meta!(button);
-    class_methods_meta!();
+    fn button___tostring_meta(&mut self, awesome: Lua) {
+        // TODO implement
+    }
+    fn button_connect_signal_meta(&mut self, awesome: Lua) {
+        // TODO implement
+    }
+    fn button_disconnect_signal_meta(&mut self, awesome: Lua) {
+        // TODO implement
+    }
+    // TODO Give these the default impls
+    /* LUA_CLASS_META methods */
+    fn button___index_meta(&mut self, awesome: Lua) -> c_int {
+        // TODO luaA_class_index
+        0
+    }
+    fn button___newindex_meta(&mut self, awesome: Lua) -> c_int {
+        // TODO luaA_class_newindex
+        0
+    }
     /* Properties  */
     properties!([
         button,

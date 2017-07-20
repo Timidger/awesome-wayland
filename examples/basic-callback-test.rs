@@ -32,9 +32,9 @@ impl callbacks::Awesome for DummyStruct {
         exec,
         spawn,
         restart,
-        connect_signal,
-        disconnect_signal,
-        emit_signal,
+        awesome_connect_signal,
+        awesome_disconnect_signal,
+        awesome_emit_signal,
         systray,
         load_image,
         set_preferred_icon_size,
@@ -54,17 +54,17 @@ impl callbacks::Awesome for DummyStruct {
 
 impl callbacks::Button for DummyStruct {
     default_impl!([
-        __tostring_meta,
-        connect_signal,
-        disconnect_signal,
-        emit_signal,
-        __call,
+        button___tostring_meta,
+        button_connect_signal,
+        button_disconnect_signal,
+        button_emit_signal,
+        button___call,
+        button_set_index_miss_handler,
+        button_set_newindex_miss_handler,
+        button_add_signal,
+        button_instances,
         button,
-        modifiers,
-        add_signal,
-        instances,
-        set_index_miss_handler,
-        set_newindex_miss_handler
+        modifiers
     ]);
 }
 
@@ -259,6 +259,19 @@ register_for_lua!(DummyStruct, AWESOME);
 
 fn main() {
     register_awesome!(DummyStruct, AWESOME).unwrap();
+    // TODO FIXME Fix this
+    // You need to change how register_* and consequently how register_lua works,
+    // by providing different C function names. You can have the same names bound to a global
+    // in lua, but you'll need to have the C name be unique.
+    // I suggest changing the array value to the register_lua macro:
+    // [
+    //     lua_func_name1; <global_name>_func_name (this is for C),
+    //     lua_func_name2; <global_name>_func_name (this is for C),
+    // ]
+    register_button!(DummyStruct, AWESOME).unwrap();
+
+
+
     // TODO Other registers
 
     match LUA.load_and_run(PathBuf::from("examples/basic-callback-test.lua")) {

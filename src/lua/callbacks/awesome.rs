@@ -7,9 +7,9 @@ pub trait Awesome {
     fn exec(&mut self, awesome: Lua);
     fn spawn(&mut self, awesome: Lua);
     fn restart(&mut self, awesome: Lua);
-    fn connect_signal(&mut self, awesome: Lua);
-    fn disconnect_signal(&mut self, awesome: Lua);
-    fn emit_signal(&mut self, awesome: Lua);
+    fn awesome_connect_signal(&mut self, awesome: Lua);
+    fn awesome_disconnect_signal(&mut self, awesome: Lua);
+    fn awesome_emit_signal(&mut self, awesome: Lua);
     fn systray(&mut self, awesome: Lua);
     fn load_image(&mut self, awesome: Lua);
     fn set_preferred_icon_size(&mut self, awesome: Lua);

@@ -44,9 +44,9 @@ impl callbacks::Awesome for DummyStruct {
         exec,
         spawn,
         restart,
-        connect_signal,
-        disconnect_signal,
-        emit_signal,
+        awesome_connect_signal,
+        awesome_disconnect_signal,
+        awesome_emit_signal,
         systray,
         load_image,
         set_preferred_icon_size,
@@ -66,17 +66,17 @@ impl callbacks::Awesome for DummyStruct {
 
 impl callbacks::Button for DummyStruct {
     default_impl!([
-        __tostring_meta,
-        connect_signal,
-        disconnect_signal,
-        emit_signal,
-        __call,
+        button___tostring_meta,
+        button_connect_signal,
+        button_disconnect_signal,
+        button_emit_signal,
+        button___call,
+        button_add_signal,
+        button_instances,
+        button_set_index_miss_handler,
+        button_set_newindex_miss_handler,
         button,
-        modifiers,
-        add_signal,
-        instances,
-        set_index_miss_handler,
-        set_newindex_miss_handler
+        modifiers
     ]);
 }
 

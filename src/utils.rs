@@ -12,39 +12,12 @@ macro_rules! c_str {
     }
 }
 
-/// Registers a lua class' meta table.
-/// E.g adds __tostring, connect_signal, etc.
-/// For the lua class methods, us register_lua_class_meth
-#[macro_export]
-macro_rules! register_lua_class_meta {
-    ($([ $( $inner:ident ),+ ])+) => {{
-        // TODO Remove this when I'm less lazy.
-        $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> i32 {0})*),*
-        unsafe extern "C" fn __tostring(lua: *mut lua_State) -> i32 {0}
-        unsafe extern "C" fn connect_signal(lua: *mut lua_State) -> i32 {0}
-        unsafe extern "C" fn disconnect_signal(lua: *mut lua_State) -> i32 {0}
-        unsafe extern "C" fn emit_signal(lua: *mut lua_State) -> i32 {0}
-            [
-                register_lua!(__tostring),
-                register_lua!(connect_signal),
-                register_lua!(disconnect_signal),
-                register_lua!(emit_signal),
-                $($(register_lua!($inner)),*),*,
-                ::lua_sys::luaL_Reg {
-                    name: ::std::ptr::null(),
-                    func: None
-                },
-            ]
-    }}
-}
-
-
 /// Registers a lua function in a LuaL_reg to call the given global identifier.
 ///
 /// Do NOT use this macro directly, use the register_for_lua! instead.
 #[macro_export]
 macro_rules! register_lua {
-    ($global_name:ident, $([ $( $inner:ident ),+ ])+) => {{
+    ($global_name:ident, $([ $( $inner:ident; $inner_lua_name:ident ),+ ])+) => {{
         use ::awesome_wayland::callbacks::Awesome;
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> i32 {
             let mut callback = $global_name.lock()
@@ -53,16 +26,16 @@ macro_rules! register_lua {
             0
         })*),*
             [
-                $($(register_lua!($inner)),*),*,
+                $($(register_lua!($inner, $inner_lua_name)),*),*,
                 ::lua_sys::luaL_Reg {
                     name: ::std::ptr::null(),
                     func: None
                 },
             ]
     }};
-    ($name:ident) => {
+    ($name:ident, $lua_name:ident) => {
         ::lua_sys::luaL_Reg {
-            name: c_str!(stringify!($name)),
+            name: c_str!(stringify!($lua_name)),
             func: Some($name)
         }
     }
@@ -72,44 +45,83 @@ macro_rules! register_lua {
 ///
 /// Note that errors for registering the method is up to the caller
 ///
-/// Do NOT use this macro directly, use the register_for_lua! instead.
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
 #[macro_export]
 macro_rules! register_awesome {
     ($callback_impl:ident, $global_name:ident) => {{
         let lua_reg = {
             register_lua!($global_name, [
-                quit,
-                exec,
-                spawn,
-                restart,
-                connect_signal,
-                disconnect_signal,
-                emit_signal,
-                systray,
-                load_image,
-                set_preferred_icon_size,
-                register_xproperty,
-                set_xproperty,
-                get_xproperty,
-                __index,
-                __newindex,
-                xkb_set_layout_group,
-                xkb_get_layout_group,
-                xkb_get_group_names,
-                xrdb_get_value,
-                kill,
-                sync
+                quit; quit,
+                exec; exec,
+                spawn; spawn,
+                restart; restart,
+                awesome_connect_signal; connect_signal,
+                awesome_disconnect_signal; disconnect_signal,
+                awesome_emit_signal; emit_signal,
+                systray; systray,
+                load_image; load_image,
+                set_preferred_icon_size; set_preferred_icon_size,
+                register_xproperty; register_xproperty,
+                set_xproperty; set_xproperty,
+                get_xproperty; get_xproperty,
+                __index; __index,
+                __newindex; __newindex,
+                xkb_set_layout_group; xkb_set_layout_group,
+                xkb_get_layout_group; xkb_get_layout_group,
+                xkb_get_group_names; xkb_get_group_names,
+                xrdb_get_value; xrdb_get_value,
+                kill; kill,
+                sync; sync
             ])
         };
         LUA.register_methods("awesome\0", &lua_reg)
     }}
 }
 
+/// Registers a struct that implements [Button](callbacks/trait.Button.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using []register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_button {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::Button;
+        let lua_reg = {
+            register_lua!($global_name,  [
+                // Class methods
+                button_add_signal; add_signal,
+                button_connect_signal; connect_signal,
+                button_disconnect_signal; disconnect_signal,
+                button_emit_signal; emit_signal,
+                button_instances; instances,
+                button_set_index_miss_handler; set_index_miss_handler,
+                button_set_newindex_miss_handler; set_newindex_miss_handler,
+                // Object methods meta
+                button___tostring_meta; __tostring_meta,
+                button_connect_signal_meta; connect_signal_meta,
+                button_disconnect_signal_meta; button_disconnect_signal_meta,
+                // Class methods meta
+                button___index_meta; __index_meta,
+                button___newindex_meta; __newindex_meta,
+                button___call; __call,
+                /* Properties */
+                button; button,
+                modifiers; modifers
+            ])
+        };
+
+        LUA.register_methods("button\0", &lua_reg)
+    }}
+}
+
+
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
 ///
 /// Equiv to the C macro LUA_CLASS_METHODS(prefix)
 #[macro_export]
+// TODO Remove, these names will clash and this will need to be written out manually...
 macro_rules! class_methods {
     ($prefix:ident) => {
         // TODO Add default impls that call:
