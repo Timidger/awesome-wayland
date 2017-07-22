@@ -270,6 +270,27 @@ macro_rules! register_keygrabber {
     }}
 }
 
+/// Registers a struct that implements [Mousegrabber](callbacks/trait.Mousegrabber.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_mousegrabber {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::Mousegrabber;
+        let lua_reg = register_lua!($global_name,  [
+            mousegrabber_run; run,
+            mousegrabber_stop; stop,
+            mousegrabber_isrunning; isrunning,
+            mousegrabber___index; __index,
+            mousegrabber___newindex; __newindex
+        ]);
+
+        LUA.register_methods("mousegrabber\0", &lua_reg)
+    }}
+}
+
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
 ///

@@ -5,9 +5,9 @@ use libc::c_int;
 
 pub trait Mousegrabber {
     /* Methods */
-    fn run(&mut self, lua: Lua);
-    fn stop(&mut self, lua: Lua);
-    fn isrunning(&mut self, lua: Lua);
-    fn __index(&mut self, lua: Lua);
-    fn __newindex(&mut self, lua: Lua);
+    fn mousegrabber_run(&mut self, lua: Lua);
+    fn mousegrabber_stop(&mut self, lua: Lua);
+    fn mousegrabber_isrunning(&mut self, lua: Lua);
+    fn mousegrabber___index(&mut self, lua: Lua);
+    fn mousegrabber___newindex(&mut self, lua: Lua);
 }

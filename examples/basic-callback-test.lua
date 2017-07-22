@@ -111,4 +111,11 @@ keygrabber.isrunning()
 keygrabber.__index()
 keygrabber.__newindex()
 
+-- Test mousegrabber fuctions
+mousegrabber.run()
+mousegrabber.stop()
+mousegrabber.isrunning()
+mousegrabber.__index()
+mousegrabber.__newindex()
+
 print("Basic callback test complete")
