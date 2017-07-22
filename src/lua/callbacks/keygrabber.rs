@@ -5,9 +5,9 @@ use libc::c_int;
 
 pub trait Keygrabber {
     /* Methods */
-    fn run(&mut self, lua: Lua);
-    fn stop(&mut self, lua: Lua);
-    fn isrunning(&mut self, lua: Lua);
-    fn __index(&mut self, lua: Lua);
-    fn __newindex(&mut self, lua: Lua);
+    fn keygrabber_run(&mut self, lua: Lua);
+    fn keygrabber_stop(&mut self, lua: Lua);
+    fn keygrabber_isrunning(&mut self, lua: Lua);
+    fn keygrabber___index(&mut self, lua: Lua);
+    fn keygrabber___newindex(&mut self, lua: Lua);
 }

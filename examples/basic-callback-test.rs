@@ -169,11 +169,11 @@ impl callbacks::Drawin for DummyStruct {
 }
 impl callbacks::Keygrabber for DummyStruct {
     default_impl!([
-        run,
-        stop,
-        isrunning,
-        __index,
-        __newindex
+        keygrabber_run,
+        keygrabber_stop,
+        keygrabber_isrunning,
+        keygrabber___index,
+        keygrabber___newindex
     ]);
 }
 impl callbacks::Mousegrabber for DummyStruct {
@@ -263,7 +263,7 @@ fn main() {
     register_button!(DummyStruct, AWESOME).unwrap();
     register_client!(DummyStruct, AWESOME).unwrap();
     register_drawin!(DummyStruct, AWESOME).unwrap();
-    //register_keygrabber!(DummyStruct, AWESOME).unwrap();
+    register_keygrabber!(DummyStruct, AWESOME).unwrap();
     //register_mousegrabber!(DummyStruct, AWESOME).unwrap();
     //register_mouse!(DummyStruct, AWESOME).unwrap();
     //register_root!(DummyStruct, AWESOME).unwrap();

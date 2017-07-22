@@ -104,4 +104,11 @@ drawin.geometry()
 --drawin.__metatable.__newindex()
 
 
+-- Test keygrabber functions
+keygrabber.run()
+keygrabber.stop()
+keygrabber.isrunning()
+keygrabber.__index()
+keygrabber.__newindex()
+
 print("Basic callback test complete")
