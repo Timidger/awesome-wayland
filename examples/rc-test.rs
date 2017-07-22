@@ -272,29 +272,9 @@ register_for_lua!(DummyStruct, AWESOME);
 
 fn main() {
     register_all!(DummyStruct, AWESOME);
-    // TODO Other registers
-
-    // Add shims/ as a place for Lua to look for libraries.
-    LUA.add_lib_lookup_path(&[";shims/?.lua".into()]);
 
     // Adds default awesome libs to path
-    // NOTE that we added this AFTER the shims path, in order
-    // for the shims path to have precedence.
     LUA.add_default_awesome_libs();
-
-    // Load library shims.
-    /*LUA.load_library("awesome", AWESOME_LIB.into()).unwrap();
-    LUA.load_library("beautiful", BEAUTIFUL_LIB.into()).unwrap();
-    LUA.load_library("button", BUTTON_LIB.into()).unwrap();
-    LUA.load_library("client", CLIENT_LIB.into()).unwrap();
-    LUA.load_library("drawin", DRAWIN_LIB.into()).unwrap();
-    LUA.load_library("keygrabber", KEYGRABBER_LIB.into()).unwrap();
-    LUA.load_library("mousegrabber", MOUSEGRABBER_LIB.into()).unwrap();
-    LUA.load_library("mouse", MOUSE_LIB.into()).unwrap();
-    LUA.load_library("root", ROOT_LIB.into()).unwrap();
-    LUA.load_library("screen", SCREEN_LIB.into()).unwrap();
-    LUA.load_library("tag", TAG_LIB.into()).unwrap();
-    */
 
     // Run the user init script
     LUA.load_and_run("examples/rc.lua".into()).unwrap();
