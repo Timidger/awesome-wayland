@@ -82,7 +82,7 @@ macro_rules! register_awesome {
 ///
 /// Note that errors for registering the method is up to the caller
 ///
-/// Use this in your main method, after using []register_for_lua](register_for_lua)
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
 #[macro_export]
 macro_rules! register_button {
     ($callback_impl:ident, $global_name:ident) => {{
@@ -107,7 +107,7 @@ macro_rules! register_button {
                 button___call; __call,
                 /* Properties */
                 button; button,
-                modifiers; modifers
+                modifiers; modifiers
             ])
         };
 
@@ -115,6 +115,96 @@ macro_rules! register_button {
     }}
 }
 
+/// Registers a struct that implements [Client](callbacks/trait.Client.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_client {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::Client;
+        let lua_reg = register_lua!($global_name,  [
+            // Methods
+            client___get; __get,
+            client___index; __index,
+            client___newindex; __newindex,
+            // Class methods
+            client_add_signal; add_signal,
+            client_connect_signal; connect_signal,
+            client_disconnect_signal; disconnect_signal,
+            client_emit_signal; emit_signal,
+            client_instances; instances,
+            client_set_index_miss_handler; set_index_miss_handler,
+            client_set_newindex_miss_handler; set_newindex_miss_handler,
+            // Object methods meta
+            client___tostring_meta; __tostring_meta,
+            client_connect_signal_meta; connect_signal_meta,
+            client_disconnect_signal_meta; button_disconnect_signal_meta,
+            // Class methods meta
+            client___index_meta; __index_meta,
+            client___newindex_meta; __newindex_meta,
+            client___call; __call,
+            // Meta
+            client_keys; keys,
+            client_isvisible; isvisible,
+            client_geometry; geometry,
+            client_apply_size_hints; apply_size_hints,
+            client_tags; tags,
+            client_kill; kill,
+            client_swap; swap,
+            client_raise; raise,
+            client_lower; lower,
+            client_unmanange; unmanange,
+            client_titlebar_top; titlebar_top,
+            client_titlebar_right; titlebar_right,
+            client_titlebar_bottom; titlebar_bottom,
+            client_titlebar_left; titlebar_left,
+            client_get_icon; get_icon,
+            // Properties
+            client_name; name,
+            client_transient_for; transient_for,
+            client_skip_taskbar; skip_taskbar,
+            client_content; content,
+            client_type_; type_,
+            client_class; class,
+            client_instance; instance,
+            client_role; role,
+            client_pid; pid,
+            client_leader_window; leader_window,
+            client_machine; machine,
+            client_icon_name; icon_name,
+            client_screen; screen,
+            client_hidden; hidden,
+            client_minimized; minimized,
+            client_fullscreen; fullscreen,
+            client_modal; modal,
+            client_group_window; group_window,
+            client_maximized; maximized,
+            client_maximized_horizontal; maximized_horizontal,
+            client_maximized_vertical; maximized_vertical,
+            client_icon; icon,
+            client_icon_sizes; icon_sizes,
+            client_ontop; ontop,
+            client_above; above,
+            client_below; below,
+            client_sticky; sticky,
+            client_size_hints_honor; size_hints_honor,
+            client_urgent; urgent,
+            client_size_hints; size_hints,
+            client_focusable; focusable,
+            client_shape_bounding; shape_bounding,
+            client_shape_clip; shape_clip,
+            client_shape_input; shape_input,
+            client_startup_id; startup_id,
+            client_client_shape_bounding; client_shape_bounding,
+            client_client_shape_clip; client_shape_clip,
+            client_first_tag; first_tag
+        ]);
+
+        LUA.register_methods("client\0", &lua_reg)
+    }}
+}
 
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
