@@ -118,4 +118,13 @@ mousegrabber.isrunning()
 mousegrabber.__index()
 mousegrabber.__newindex()
 
+
+-- Test mouse functions
+mouse.__index()
+mouse.__newindex()
+mouse.coords()
+mouse.object_under_pointer()
+mouse.set_index_miss_handler()
+mouse.set_newindex_miss_handler()
+
 print("Basic callback test complete")

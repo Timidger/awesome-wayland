@@ -291,6 +291,28 @@ macro_rules! register_mousegrabber {
     }}
 }
 
+/// Registers a struct that implements [Mouse](callbacks/trait.Mouse.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_mouse {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::Mouse;
+        let lua_reg = register_lua!($global_name,  [
+            mouse___index; __index,
+            mouse___newindex; __newindex,
+            mouse_coords; coords,
+            mouse_object_under_pointer; object_under_pointer,
+            mouse_set_index_miss_handler; set_index_miss_handler,
+            mouse_set_newindex_miss_handler; set_newindex_miss_handler
+        ]);
+
+        LUA.register_methods("mouse\0", &lua_reg)
+    }}
+}
+
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
 ///

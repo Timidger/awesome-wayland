@@ -187,12 +187,12 @@ impl callbacks::Mousegrabber for DummyStruct {
 }
 impl callbacks::Mouse for DummyStruct {
     default_impl!([
-        __index,
-        __newindex,
-    coords,
-        object_under_pointer,
-        set_index_miss_handler,
-        set_newindex_miss_handler
+        mouse___index,
+        mouse___newindex,
+        mouse_coords,
+        mouse_object_under_pointer,
+        mouse_set_index_miss_handler,
+        mouse_set_newindex_miss_handler
     ]);
 }
 impl callbacks::Root for DummyStruct {
@@ -265,7 +265,7 @@ fn main() {
     register_drawin!(DummyStruct, AWESOME).unwrap();
     register_keygrabber!(DummyStruct, AWESOME).unwrap();
     register_mousegrabber!(DummyStruct, AWESOME).unwrap();
-    //register_mouse!(DummyStruct, AWESOME).unwrap();
+    register_mouse!(DummyStruct, AWESOME).unwrap();
     //register_root!(DummyStruct, AWESOME).unwrap();
     //register_screen!(DummyStruct, AWESOME).unwrap();
     //register_tag!(DummyStruct, AWESOME).unwrap();
