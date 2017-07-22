@@ -51,27 +51,27 @@ macro_rules! register_awesome {
     ($callback_impl:ident, $global_name:ident) => {{
         let lua_reg = {
             register_lua!($global_name, [
-                quit; quit,
-                exec; exec,
-                spawn; spawn,
-                restart; restart,
+                awesome_quit; quit,
+                awesome_exec; exec,
+                awesome_spawn; spawn,
+                awesome_restart; restart,
                 awesome_connect_signal; connect_signal,
                 awesome_disconnect_signal; disconnect_signal,
                 awesome_emit_signal; emit_signal,
-                systray; systray,
-                load_image; load_image,
-                set_preferred_icon_size; set_preferred_icon_size,
-                register_xproperty; register_xproperty,
-                set_xproperty; set_xproperty,
-                get_xproperty; get_xproperty,
-                __index; __index,
-                __newindex; __newindex,
-                xkb_set_layout_group; xkb_set_layout_group,
-                xkb_get_layout_group; xkb_get_layout_group,
-                xkb_get_group_names; xkb_get_group_names,
-                xrdb_get_value; xrdb_get_value,
-                kill; kill,
-                sync; sync
+                awesome_systray; systray,
+                awesome_load_image; load_image,
+                awesome_set_preferred_icon_size; set_preferred_icon_size,
+                awesome_register_xproperty; register_xproperty,
+                awesome_set_xproperty; set_xproperty,
+                awesome_get_xproperty; get_xproperty,
+                awesome___index; __index,
+                awesome___newindex; __newindex,
+                awesome_xkb_set_layout_group; xkb_set_layout_group,
+                awesome_xkb_get_layout_group; xkb_get_layout_group,
+                awesome_xkb_get_group_names; xkb_get_group_names,
+                awesome_xrdb_get_value; xrdb_get_value,
+                awesome_kill; kill,
+                awesome_sync; sync
             ])
         };
         LUA.register_methods("awesome\0", &lua_reg)

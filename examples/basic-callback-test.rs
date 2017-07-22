@@ -28,27 +28,27 @@ macro_rules! default_impl{
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
     default_impl!([
-        quit,
-        exec,
-        spawn,
-        restart,
+        awesome_quit,
+        awesome_exec,
+        awesome_spawn,
+        awesome_restart,
         awesome_connect_signal,
         awesome_disconnect_signal,
         awesome_emit_signal,
-        systray,
-        load_image,
-        set_preferred_icon_size,
-        register_xproperty,
-        set_xproperty,
-        get_xproperty,
-        __index,
-        __newindex,
-        xkb_set_layout_group,
-        xkb_get_layout_group,
-        xkb_get_group_names,
-        xrdb_get_value,
-        kill,
-        sync
+        awesome_systray,
+        awesome_load_image,
+        awesome_set_preferred_icon_size,
+        awesome_register_xproperty,
+        awesome_set_xproperty,
+        awesome_get_xproperty,
+        awesome___index,
+        awesome___newindex,
+        awesome_xkb_set_layout_group,
+        awesome_xkb_get_layout_group,
+        awesome_xkb_get_group_names,
+        awesome_xrdb_get_value,
+        awesome_kill,
+        awesome_sync
     ]);
 }
 
