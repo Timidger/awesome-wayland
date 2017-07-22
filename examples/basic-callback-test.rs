@@ -6,7 +6,9 @@
 #[macro_use] extern crate awesome_wayland;
 #[macro_use] extern crate lazy_static;
 extern crate lua_sys;
+extern crate libc;
 use lua_sys::*;
+use libc::c_int;
 
 use awesome_wayland::{Lua, LuaErr, Awesome};
 use awesome_wayland::callbacks;
@@ -20,7 +22,7 @@ pub struct DummyStruct;
 /// Save on a LOT of typing
 macro_rules! default_impl{
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&mut self, lua: Lua) {})*),*
+        $($(fn $inner(&mut self, lua: Lua) -> c_int {0})*),*
     };
 }
 
