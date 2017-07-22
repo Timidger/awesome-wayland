@@ -28,7 +28,7 @@ pub trait Client {
     fn client___newindex_meta(&mut self, lua: Lua) -> c_int {
         default::__newindex_meta(lua)
     }
-    fn client___get(&mut self, lua: Lua);
+    fn client_get(&mut self, lua: Lua);
     fn client___index(&mut self, awsemoe: Lua);
     fn client___newindex(&mut self, awsemoe: Lua);
     /* Meta */

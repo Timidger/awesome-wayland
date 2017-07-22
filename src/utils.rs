@@ -126,7 +126,7 @@ macro_rules! register_client {
         use ::awesome_wayland::callbacks::Client;
         let lua_reg = register_lua!($global_name,  [
             // Methods
-            client___get; __get,
+            client_get; get,
             client___index; __index,
             client___newindex; __newindex,
             // Class methods
