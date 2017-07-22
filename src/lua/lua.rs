@@ -24,6 +24,10 @@ pub enum LuaErr {
     Load(FFIErr),
     /// Evaluation error from Lua
     Eval(String),
+    /// There was an FFI error during evalution
+    EvalFFI(FFIErr),
+    /// There was an error loading in arguments from the Lua call
+    ArgumentInvalid,
     /// A variable was already defined.
     AlreadyDefined(String),
     /// Could not find configuration file with the given path.
@@ -37,13 +41,9 @@ pub enum FFIErr {
     /// String had invalid UTF-8 encoding.
     InvalidUTF(String),
     /// String contained a null byte.
-    NullByte(String)
-}
-
-impl From<FFIErr> for LuaErr {
-    fn from(err: FFIErr) -> Self {
-    LuaErr::Load(err)
-    }
+    NullByte(String),
+    /// Could not convert from C string to UTF-8 encoded one
+    Conversion(CString)
 }
 
 impl Lua {
@@ -70,9 +70,11 @@ impl Lua {
     /// Loads and runs the Lua file that the path points to.
     pub fn load_and_run(&self, path: PathBuf) -> Result<(), LuaErr> {
         let path_str = path.to_str()
-            .ok_or_else(|| FFIErr::InvalidUTF(path.to_str().unwrap().into()))
+            .ok_or_else(||
+                        LuaErr::Load(FFIErr::InvalidUTF(path.to_str().unwrap().into())))
             .and_then(|s| CString::new(s)
-                      .map_err(|_| FFIErr::NullByte(path.to_str().unwrap().into())))?;
+                      .map_err(|_|
+                               LuaErr::Load(FFIErr::NullByte(path.to_str().unwrap().into()))))?;
         unsafe {
             let lua = &mut *self.0;
             let mut status = luaL_loadfile(lua, path_str.as_ptr());
@@ -108,7 +110,7 @@ impl Lua {
             let l = self.0;
             // NOTE: This is safe because we guarentee that name is static
             let c_name = CStr::from_bytes_with_nul(name.as_bytes())
-                .map_err(|_| FFIErr::NullByte(name.into()))?;
+                .map_err(|_| LuaErr::EvalFFI(FFIErr::NullByte(name.into())))?;
             let result = luaL_newmetatable(l, c_name.as_ptr());
             if result == ALREADY_DEFINED {
                 // variable is still pushed to the stack
@@ -172,9 +174,11 @@ impl Lua {
             lua_getfield(lua, 1, c_str!("path"));
             for path in paths {
                 let c_path = path.to_str()
-                    .ok_or_else(|| FFIErr::InvalidUTF(path.to_str().unwrap().into()))
+                    .ok_or_else(||
+                                LuaErr::EvalFFI(FFIErr::InvalidUTF(path.to_str().unwrap().into())))
                     .and_then(|s| CString::new(s)
-                              .map_err(|_| FFIErr::NullByte(path.to_str().unwrap().into())))?;
+                              .map_err(|_|
+                                       LuaErr::EvalFFI(FFIErr::NullByte(path.to_str().unwrap().into()))))?;
                 lua_pushfstring(lua, c_path.as_ptr());
                 // TODO needed?
                 ::std::mem::forget(c_path);
@@ -217,7 +221,7 @@ impl Lua {
         unsafe {
             let lua = self.0;
             let c_str = CString::new(return_val.clone())
-                .map_err(|_| FFIErr::NullByte(return_val))?;
+                .map_err(|_| LuaErr::EvalFFI(FFIErr::NullByte(return_val)))?;
             lua_pushstring(lua, c_str.as_ptr());
             // TODO Needed?
             ::std::mem::forget(c_str);
