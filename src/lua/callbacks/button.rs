@@ -1,6 +1,7 @@
 //! Callbacks for the `button` object in the Lua libraries
 
 use ::lua::Lua;
+use super::default;
 use libc::c_int;
 
 // TODO This is a class, need to setup the class properly...
@@ -8,33 +9,31 @@ use libc::c_int;
 
 pub trait Button {
     /* Methods */
-    fn button_add_signal(&mut self, awesome: Lua);
-    fn button_connect_signal(&mut self, awesome: Lua);
-    fn button_disconnect_signal(&mut self, awesome: Lua);
-    fn button_emit_signal(&mut self, awesome: Lua);
-    fn button_instances(&mut self, awesome: Lua);
-    fn button_set_index_miss_handler(&mut self, awesome: Lua);
-    fn button_set_newindex_miss_handler(&mut self, awesome: Lua);
-    fn button___call(&mut self, awesome: Lua);
+    fn button_add_signal(&mut self, lua: Lua);
+    fn button_connect_signal(&mut self, lua: Lua);
+    fn button_disconnect_signal(&mut self, lua: Lua);
+    fn button_emit_signal(&mut self, lua: Lua);
+    fn button_instances(&mut self, lua: Lua);
+    fn button_set_index_miss_handler(&mut self, lua: Lua);
+    fn button_set_newindex_miss_handler(&mut self, lua: Lua);
+    fn button___call(&mut self, lua: Lua);
     /* Meta */
-    fn button___tostring_meta(&mut self, awesome: Lua) {
-        // TODO implement
+    fn button___tostring_meta(&mut self, lua: Lua) {
+        default::__tostring_meta(lua)
     }
-    fn button_connect_signal_meta(&mut self, awesome: Lua) {
-        // TODO implement
+    fn button_connect_signal_meta(&mut self, lua: Lua) {
+        default::connect_signal_meta(lua)
     }
-    fn button_disconnect_signal_meta(&mut self, awesome: Lua) {
-        // TODO implement
+    fn button_disconnect_signal_meta(&mut self, lua: Lua) {
+        default::disconnect_signal_meta(lua)
     }
     // TODO Give these the default impls
     /* LUA_CLASS_META methods */
-    fn button___index_meta(&mut self, awesome: Lua) -> c_int {
-        // TODO luaA_class_index
-        0
+    fn button___index_meta(&mut self, lua: Lua) -> c_int {
+        default::__index_meta(lua)
     }
-    fn button___newindex_meta(&mut self, awesome: Lua) -> c_int {
-        // TODO luaA_class_newindex
-        0
+    fn button___newindex_meta(&mut self, lua: Lua) -> c_int {
+        default::__newindex_meta(lua)
     }
     /* Properties  */
     properties!([

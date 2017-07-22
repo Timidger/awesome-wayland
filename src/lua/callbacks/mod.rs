@@ -3,6 +3,7 @@
 //! as many structs as they want. It's recommended you have one struct per
 //! interface, though you can just use one struct if you wish.
 
+// Callback modules
 mod awesome;
 mod button;
 mod client;
@@ -13,6 +14,8 @@ mod mouse;
 mod root;
 mod screen;
 mod tag;
+// Helper modules
+mod default;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;
