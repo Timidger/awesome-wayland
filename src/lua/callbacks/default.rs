@@ -5,16 +5,19 @@
 use ::lua::Lua;
 use libc::c_int;
 
-pub fn __tostring_meta(lua: Lua) {
+pub fn __tostring_meta(lua: Lua) -> c_int {
     // TODO implement
+    0
 }
 
-pub fn connect_signal_meta(lua: Lua) {
+pub fn connect_signal_meta(lua: Lua) -> c_int {
     // TODO implement
+    0
 }
 
-pub fn disconnect_signal_meta(lua: Lua) {
+pub fn disconnect_signal_meta(lua: Lua) -> c_int {
     // TODO implement
+    0
 }
 
 

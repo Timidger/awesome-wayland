@@ -9,22 +9,22 @@ use libc::c_int;
 
 pub trait Button {
     /* Methods */
-    fn button_add_signal(&mut self, lua: Lua);
-    fn button_connect_signal(&mut self, lua: Lua);
-    fn button_disconnect_signal(&mut self, lua: Lua);
-    fn button_emit_signal(&mut self, lua: Lua);
-    fn button_instances(&mut self, lua: Lua);
-    fn button_set_index_miss_handler(&mut self, lua: Lua);
-    fn button_set_newindex_miss_handler(&mut self, lua: Lua);
-    fn button___call(&mut self, lua: Lua);
+    fn button_add_signal(&mut self, lua: Lua) -> c_int;
+    fn button_connect_signal(&mut self, lua: Lua) -> c_int;
+    fn button_disconnect_signal(&mut self, lua: Lua) -> c_int;
+    fn button_emit_signal(&mut self, lua: Lua) -> c_int;
+    fn button_instances(&mut self, lua: Lua) -> c_int;
+    fn button_set_index_miss_handler(&mut self, lua: Lua) -> c_int;
+    fn button_set_newindex_miss_handler(&mut self, lua: Lua) -> c_int;
+    fn button___call(&mut self, lua: Lua) -> c_int;
     /* Meta */
-    fn button___tostring_meta(&mut self, lua: Lua) {
+    fn button___tostring_meta(&mut self, lua: Lua) -> c_int {
         default::__tostring_meta(lua)
     }
-    fn button_connect_signal_meta(&mut self, lua: Lua) {
+    fn button_connect_signal_meta(&mut self, lua: Lua) -> c_int {
         default::connect_signal_meta(lua)
     }
-    fn button_disconnect_signal_meta(&mut self, lua: Lua) {
+    fn button_disconnect_signal_meta(&mut self, lua: Lua) -> c_int {
         default::disconnect_signal_meta(lua)
     }
     // TODO Give these the default impls

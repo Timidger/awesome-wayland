@@ -19,11 +19,11 @@ macro_rules! c_str {
 macro_rules! register_lua {
     ($global_name:ident, $([ $( $inner:ident; $inner_lua_name:ident ),+ ])+) => {{
         use ::awesome_wayland::callbacks::Awesome;
-        $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> i32 {
+        use ::libc::c_int;
+        $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> c_int {
             let mut callback = $global_name.lock()
                 .expect("Could not lock user defined callback object");
-            callback.callbacks.$inner(::Lua::from_ptr(lua));
-            0
+            callback.callbacks.$inner(::Lua::from_ptr(lua))
         })*),*
             [
                 $($(register_lua!($inner, $inner_lua_name)),*),*,
@@ -462,6 +462,6 @@ macro_rules! register_for_lua {
 /// For now, it just defines them
 macro_rules! properties {
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&mut self, lua: Lua);)*),*
+        $($(fn $inner(&mut self, lua: Lua) -> c_int;)*),*
     };
 }

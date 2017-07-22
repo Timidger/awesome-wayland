@@ -5,6 +5,7 @@ use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 use std::ops::{Deref, DerefMut};
+use std::collections::HashMap;
 
 const ALREADY_DEFINED: i32 = 0;
 
@@ -200,6 +201,14 @@ impl Lua {
         self.add_lib_lookup_path(&[";/usr/share/awesome/lib/?.lua;".into(),
                                    ";/usr/share/awesome/lib/?/init.lua;".into()
         ]);
+    }
+
+    pub fn return_table<T>(&self, table: HashMap<String, T>) {
+        unsafe {
+            let lua = self.0;
+            lua_newtable(lua);
+            // TODO Push values to table
+        }
     }
 }
 

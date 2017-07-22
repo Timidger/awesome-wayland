@@ -6,24 +6,24 @@ use libc::c_int;
 
 pub trait Drawin {
     // Class Methods
-    fn drawin_add_signal(&mut self, lua: Lua);
-    fn drawin_connect_signal(&mut self, lua: Lua);
-    fn drawin_disconnect_signal(&mut self, lua: Lua);
-    fn drawin_emit_signal(&mut self, lua: Lua);
-    fn drawin_instances(&mut self, lua: Lua);
-    fn drawin_set_index_miss_handler(&mut self, lua: Lua);
-    fn drawin_set_newindex_miss_handler(&mut self, lua: Lua);
+    fn drawin_add_signal(&mut self, lua: Lua) -> c_int;
+    fn drawin_connect_signal(&mut self, lua: Lua) -> c_int;
+    fn drawin_disconnect_signal(&mut self, lua: Lua) -> c_int;
+    fn drawin_emit_signal(&mut self, lua: Lua) -> c_int;
+    fn drawin_instances(&mut self, lua: Lua) -> c_int;
+    fn drawin_set_index_miss_handler(&mut self, lua: Lua) -> c_int;
+    fn drawin_set_newindex_miss_handler(&mut self, lua: Lua) -> c_int;
     // Methods
-    fn drawin___call(&mut self, lua: Lua);
-    fn drawin_geometry(&mut self, lua: Lua);
+    fn drawin___call(&mut self, lua: Lua) -> c_int;
+    fn drawin_geometry(&mut self, lua: Lua) -> c_int;
     // Object meta methods
-    fn drawin___tostring_meta(&mut self, lua: Lua) {
+    fn drawin___tostring_meta(&mut self, lua: Lua) -> c_int {
         default::__tostring_meta(lua)
     }
-    fn drawin_connect_signal_meta(&mut self, lua: Lua) {
+    fn drawin_connect_signal_meta(&mut self, lua: Lua) -> c_int {
         default::connect_signal_meta(lua)
     }
-    fn drawin_disconnect_signal_meta(&mut self, lua: Lua) {
+    fn drawin_disconnect_signal_meta(&mut self, lua: Lua) -> c_int {
         default::disconnect_signal_meta(lua)
     }
     // Class meta methods
