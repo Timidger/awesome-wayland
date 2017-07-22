@@ -4,18 +4,18 @@
 //! interface, though you can just use one struct if you wish.
 
 // Callback modules
-mod awesome;
-mod button;
-mod client;
-mod drawin;
-mod keygrabber;
-mod mousegrabber;
-mod mouse;
-mod root;
-mod screen;
-mod tag;
+pub mod awesome;
+pub mod button;
+pub mod client;
+pub mod drawin;
+pub mod keygrabber;
+pub mod mousegrabber;
+pub mod mouse;
+pub mod root;
+pub mod screen;
+pub mod tag;
 // Helper modules
-mod default;
+pub mod default;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;
