@@ -340,6 +340,47 @@ macro_rules! register_root {
     }}
 }
 
+/// Registers a struct that implements [Screen](callbacks/trait.Screen.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_screen {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::Screen;
+        let lua_reg = register_lua!($global_name,  [
+            screen_add_signal; add_signal,
+            screen_connect_signal; connect_signal,
+            screen_disconnect_signal; disconnect_signal,
+            screen_emit_signal; emit_signal,
+            screen_instances; instances,
+            screen_set_index_miss_handler; set_index_miss_handler,
+            screen_set_newindex_miss_handler; set_newindex_miss_handler,
+            screen_count; count,
+            screen___index; __index,
+            screen___newindex; __newindex,
+            screen___call; __call,
+            screen_fake_add; fake_add,
+            screen___tostring_meta; __tostring_meta,
+            screen_connect_signal_meta; connect_signal_meta,
+            screen_disconnect_signal_meta; disconnect_signal_meta,
+            screen___index_meta; __index_meta,
+            screen___newindex_meta; __newindex_meta,
+            screen_fake_remove; fake_remove,
+            screen_fake_resize; fake_resize,
+            screen_swap; swap,
+            // properties
+            screen_geometry; geometry,
+            screen_index; index,
+            screen_outputs; outputs,
+            screen_workarea; workarea
+        ]);
+
+        LUA.register_methods("screen\0", &lua_reg)
+    }}
+}
+
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
 ///

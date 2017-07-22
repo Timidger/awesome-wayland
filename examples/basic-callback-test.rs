@@ -212,25 +212,25 @@ impl callbacks::Root for DummyStruct {
 }
 impl callbacks::Screen for DummyStruct {
     default_impl!([
-        add_signal,
-        connect_signal,
-        disconnect_signal,
-        emit_signal,
-        instances,
-        set_index_miss_handler,
-        set_newindex_miss_handler,
-        count,
-        __index,
-        __newindex,
-        __call,
-        fake_add,
-        fake_remove,
-        fake_resize,
-        swap,
-        geometry,
-        index,
-        outputs,
-        workarea
+        screen_add_signal,
+        screen_connect_signal,
+        screen_disconnect_signal,
+        screen_emit_signal,
+        screen_instances,
+        screen_set_index_miss_handler,
+        screen_set_newindex_miss_handler,
+        screen_count,
+        screen___index,
+        screen___newindex,
+        screen___call,
+        screen_fake_add,
+        screen_fake_remove,
+        screen_fake_resize,
+        screen_swap,
+        screen_geometry,
+        screen_index,
+        screen_outputs,
+        screen_workarea
     ]);
 }
 impl callbacks::Tag for DummyStruct {
@@ -267,7 +267,7 @@ fn main() {
     register_mousegrabber!(DummyStruct, AWESOME).unwrap();
     register_mouse!(DummyStruct, AWESOME).unwrap();
     register_root!(DummyStruct, AWESOME).unwrap();
-    //register_screen!(DummyStruct, AWESOME).unwrap();
+    register_screen!(DummyStruct, AWESOME).unwrap();
     //register_tag!(DummyStruct, AWESOME).unwrap();
 
 

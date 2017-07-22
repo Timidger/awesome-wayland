@@ -141,4 +141,30 @@ root.tags()
 root.__index()
 root.__newindex()
 
+
+-- Test screen functions
+screen.add_signal()
+screen.connect_signal()
+screen.disconnect_signal()
+screen.emit_signal()
+screen.instances()
+screen.set_index_miss_handler()
+screen.set_newindex_miss_handler()
+screen.count()
+screen.__index()
+screen.__newindex()
+screen.__call()
+screen.fake_add()
+screen.fake_remove()
+screen.fake_resize()
+screen.swap()
+
+-- Test screen meta functions
+-- TODO Lib doesn't add meta functions yet
+--screen.__metatable.__tostring()
+--screen.__metatable.connect_signal()
+--screen.__metatable.disconnect_signal()
+--screen.__metatable.__index()
+--screen.__metatable.__newindex()
+
 print("Basic callback test complete")
