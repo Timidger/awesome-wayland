@@ -207,6 +207,23 @@ impl Lua {
         ]);
     }
 
+    /// Gets the argument from indexing a lua table.
+    /// This argument is always the second one.
+    pub fn get_index_arg_string(&self) -> Result<String, LuaErr> {
+        unsafe {
+            let lua = self.0;
+            let buf = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
+            if buf.is_null() {
+                return Err(LuaErr::ArgumentInvalid)
+            }
+            let c_str = CStr::from_ptr(buf);
+            Ok(c_str.to_owned().into_string()
+               .map_err(|err|
+                        LuaErr::EvalFFI(FFIErr::Conversion(err.into_cstring())))?)
+
+        }
+    }
+
     pub fn return_table<T>(&self, table: HashMap<String, T>) {
         unsafe {
             let lua = self.0;
