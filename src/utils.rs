@@ -414,6 +414,30 @@ macro_rules! register_tag {
     }}
 }
 
+
+/// Registers all of the callbacks to be for the passed in global.
+/// This is a helpful convience macro so you don't have to write
+/// out all those registers.
+///
+/// Note that this does absolutely no error handling what-so-ever.
+/// If you want to handle the possibilty of the registerts failing
+/// (which is unlikely, they should work) then use the individual register_*!
+#[macro_export]
+macro_rules! register_all {
+    ($callback_impl:ident, $global_name:ident) => {{
+        register_awesome!($callback_impl, $global_name).unwrap();
+        register_button!($callback_impl, $global_name).unwrap();
+        register_client!($callback_impl, $global_name).unwrap();
+        register_drawin!($callback_impl, $global_name).unwrap();
+        register_keygrabber!($callback_impl, $global_name).unwrap();
+        register_mousegrabber!($callback_impl, $global_name).unwrap();
+        register_mouse!($callback_impl, $global_name).unwrap();
+        register_root!($callback_impl, $global_name).unwrap();
+        register_screen!($callback_impl, $global_name).unwrap();
+        register_tag!($callback_impl, $global_name).unwrap();
+    }}
+}
+
 /// Registers a new instance of the passed-in user object as a global
 /// singleton that will be used for all of the Lua callbacks.
 ///

@@ -259,20 +259,7 @@ impl Default for DummyStruct {
 register_for_lua!(DummyStruct, AWESOME);
 
 fn main() {
-    register_awesome!(DummyStruct, AWESOME).unwrap();
-    register_button!(DummyStruct, AWESOME).unwrap();
-    register_client!(DummyStruct, AWESOME).unwrap();
-    register_drawin!(DummyStruct, AWESOME).unwrap();
-    register_keygrabber!(DummyStruct, AWESOME).unwrap();
-    register_mousegrabber!(DummyStruct, AWESOME).unwrap();
-    register_mouse!(DummyStruct, AWESOME).unwrap();
-    register_root!(DummyStruct, AWESOME).unwrap();
-    register_screen!(DummyStruct, AWESOME).unwrap();
-    register_tag!(DummyStruct, AWESOME).unwrap();
-
-
-
-    // TODO Other registers
+    register_all!(DummyStruct, AWESOME);
 
     match LUA.load_and_run(PathBuf::from("examples/basic-callback-test.lua")) {
         Ok(_) => {},
