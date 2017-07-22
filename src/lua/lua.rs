@@ -34,10 +34,10 @@ pub enum LuaErr {
 /// Errors while interfacing with C
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum FFIErr {
-    /// Path had invalid UTF-8 encoding.
-    InvalidUTF(PathBuf),
-    /// Path contained a null byte.
-    NullByte(PathBuf)
+    /// String had invalid UTF-8 encoding.
+    InvalidUTF(String),
+    /// String contained a null byte.
+    NullByte(String)
 }
 
 impl From<FFIErr> for LuaErr {
@@ -70,9 +70,9 @@ impl Lua {
     /// Loads and runs the Lua file that the path points to.
     pub fn load_and_run(&self, path: PathBuf) -> Result<(), LuaErr> {
         let path_str = path.to_str()
-            .ok_or_else(|| FFIErr::InvalidUTF(path.clone()))
+            .ok_or_else(|| FFIErr::InvalidUTF(path.to_str().unwrap().into()))
             .and_then(|s| CString::new(s)
-                      .map_err(|_| FFIErr::NullByte(path.clone())))?;
+                      .map_err(|_| FFIErr::NullByte(path.to_str().unwrap().into())))?;
         unsafe {
             let lua = &mut *self.0;
             let mut status = luaL_loadfile(lua, path_str.as_ptr());
@@ -172,9 +172,9 @@ impl Lua {
             lua_getfield(lua, 1, c_str!("path"));
             for path in paths {
                 let c_path = path.to_str()
-                    .ok_or_else(|| FFIErr::InvalidUTF(path.clone()))
+                    .ok_or_else(|| FFIErr::InvalidUTF(path.to_str().unwrap().into()))
                     .and_then(|s| CString::new(s)
-                              .map_err(|_| FFIErr::NullByte(path.clone())))?;
+                              .map_err(|_| FFIErr::NullByte(path.to_str().unwrap().into())))?;
                 lua_pushfstring(lua, c_path.as_ptr());
                 // TODO needed?
                 ::std::mem::forget(c_path);
