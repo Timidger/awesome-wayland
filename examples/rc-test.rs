@@ -17,17 +17,7 @@ use std::path::PathBuf;
 use std::default::Default;
 use std::collections::HashMap;
 
-const AWESOME_LIB: &'static str = "shims/awesome.lua";
-const BEAUTIFUL_LIB: &'static str = "shims/beautiful.lua";
-const BUTTON_LIB: &'static str = "shims/button.lua";
-const CLIENT_LIB: &'static str = "shims/client.lua";
-const DRAWIN_LIB: &'static str = "shims/drawin.lua";
-const KEYGRABBER_LIB: &'static str = "shims/keygrabber.lua";
-const MOUSEGRABBER_LIB: &'static str = "shims/mousegrabber.lua";
-const MOUSE_LIB: &'static str = "shims/mouse.lua";
-const ROOT_LIB: &'static str = "shims/root.lua";
-const SCREEN_LIB: &'static str = "shims/screen.lua";
-const TAG_LIB: &'static str = "shims/tag.lua";
+const AWESOME_THEMES_PATH: &str = "/usr/share/awesome/themes";
 
 // Contains no state, just here so we can register the libs.
 pub struct DummyStruct;
@@ -51,6 +41,33 @@ impl callbacks::Awesome for DummyStruct {
         }
         1
     }
+
+    fn awesome___index(&mut self, lua: Lua) -> c_int {
+        // TODO Check if has a metatable, and if so use that.
+        let buf = lua.get_index_arg_string().unwrap();
+
+        match buf.as_str() {
+            "version" => {
+                lua.return_string("v1");
+                1
+            },
+            "themes_path" => {
+                lua.return_string(AWESOME_THEMES_PATH);
+                1
+            },
+            "conffile" => {
+                lua.return_string("./examples/rc.lua");
+                1
+            }
+            val => {
+                // Didn't find anything
+                // TODO add something so I can call:
+                // signal_object_emit(L, &global_signals, "debug::index::miss", 2);
+                eprintln!("Val ({:#?}) is not set", val);
+                0
+            }
+        }
+    }
     default_impl!([
         awesome_quit,
         awesome_exec,
@@ -65,7 +82,6 @@ impl callbacks::Awesome for DummyStruct {
         awesome_register_xproperty,
         awesome_set_xproperty,
         awesome_get_xproperty,
-        awesome___index,
         awesome___newindex,
         awesome_xkb_set_layout_group,
         awesome_xkb_get_layout_group,
