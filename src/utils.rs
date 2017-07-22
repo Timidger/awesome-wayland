@@ -313,6 +313,33 @@ macro_rules! register_mouse {
     }}
 }
 
+/// Registers a struct that implements [Root](callbacks/trait.Root.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_root {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::Root;
+        let lua_reg = register_lua!($global_name,  [
+            root_buttons; buttons,
+            root_keys; keys,
+            root_cursor; cursor,
+            root_fake_input; fake_input,
+            root_drawins; drawins,
+            root_wallpaper; wallpaper,
+            root_size; size,
+            root_size_mm; size_mm,
+            root_tags; tags,
+            root___index; __index,
+            root___newindex; __newindex
+        ]);
+
+        LUA.register_methods("root\0", &lua_reg)
+    }}
+}
+
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
 ///

@@ -197,17 +197,17 @@ impl callbacks::Mouse for DummyStruct {
 }
 impl callbacks::Root for DummyStruct {
     default_impl!([
-        buttons,
-        keys,
-        cursor,
-        fake_input,
-        drawins,
-        wallpaper,
-        size,
-        size_mm,
-        tags,
-        __index,
-        __newindex
+        root_buttons,
+        root_keys,
+        root_cursor,
+        root_fake_input,
+        root_drawins,
+        root_wallpaper,
+        root_size,
+        root_size_mm,
+        root_tags,
+        root___index,
+        root___newindex
     ]);
 }
 impl callbacks::Screen for DummyStruct {
@@ -266,7 +266,7 @@ fn main() {
     register_keygrabber!(DummyStruct, AWESOME).unwrap();
     register_mousegrabber!(DummyStruct, AWESOME).unwrap();
     register_mouse!(DummyStruct, AWESOME).unwrap();
-    //register_root!(DummyStruct, AWESOME).unwrap();
+    register_root!(DummyStruct, AWESOME).unwrap();
     //register_screen!(DummyStruct, AWESOME).unwrap();
     //register_tag!(DummyStruct, AWESOME).unwrap();
 

@@ -127,4 +127,18 @@ mouse.object_under_pointer()
 mouse.set_index_miss_handler()
 mouse.set_newindex_miss_handler()
 
+
+-- Test root functions
+root.buttons()
+root.keys()
+root.cursor()
+root.fake_input()
+root.drawins()
+root.wallpaper()
+root.size()
+root.size_mm()
+root.tags()
+root.__index()
+root.__newindex()
+
 print("Basic callback test complete")
