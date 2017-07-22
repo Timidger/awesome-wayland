@@ -84,4 +84,24 @@ client.get_icon()
 --client.__metatable.__index()
 --client.__metatable.__newindex()
 
+-- Test drawin functions
+drawin.add_signal()
+drawin.connect_signal()
+drawin.disconnect_signal()
+drawin.emit_signal()
+drawin.instances()
+drawin.set_index_miss_handler()
+drawin.set_newindex_miss_handler()
+drawin.__call()
+drawin.geometry()
+
+-- Test drawin meta functions
+-- TODO Lib doesn't add meta functions yet
+--drawin.__metatable.__tostring()
+--drawin.__metatable.connect_signal()
+--drawin.__metatable.disconnect_signal()
+--drawin.__metatable.__index()
+--drawin.__metatable.__newindex()
+
+
 print("Basic callback test complete")

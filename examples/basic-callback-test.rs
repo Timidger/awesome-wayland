@@ -144,27 +144,27 @@ impl callbacks::Client for DummyStruct {
 }
 impl callbacks::Drawin for DummyStruct {
     default_impl!([
-        add_signal,
-        connect_signal,
-        disconnect_signal,
-        emit_signal,
-        instances,
-        set_index_miss_handler,
-        set_newindex_miss_handler,
-        __call,
-        geometry,
-        drawable,
-        visible,
-        ontop,
-        cursor,
-        x,
-        y,
-        width,
-        height,
-        type_,
-        shape_bounding,
-        shape_clip,
-        shape_input
+        drawin_add_signal,
+        drawin_connect_signal,
+        drawin_disconnect_signal,
+        drawin_emit_signal,
+        drawin_instances,
+        drawin_set_index_miss_handler,
+        drawin_set_newindex_miss_handler,
+        drawin___call,
+        drawin_geometry,
+        drawin_drawable,
+        drawin_visible,
+        drawin_ontop,
+        drawin_cursor,
+        drawin_x,
+        drawin_y,
+        drawin_width,
+        drawin_height,
+        drawin_type_,
+        drawin_shape_bounding,
+        drawin_shape_clip,
+        drawin_shape_input
     ]);
 }
 impl callbacks::Keygrabber for DummyStruct {
@@ -262,7 +262,7 @@ fn main() {
     register_awesome!(DummyStruct, AWESOME).unwrap();
     register_button!(DummyStruct, AWESOME).unwrap();
     register_client!(DummyStruct, AWESOME).unwrap();
-    //register_drawin!(DummyStruct, AWESOME).unwrap();
+    register_drawin!(DummyStruct, AWESOME).unwrap();
     //register_keygrabber!(DummyStruct, AWESOME).unwrap();
     //register_mousegrabber!(DummyStruct, AWESOME).unwrap();
     //register_mouse!(DummyStruct, AWESOME).unwrap();

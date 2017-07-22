@@ -206,6 +206,49 @@ macro_rules! register_client {
     }}
 }
 
+/// Registers a struct that implements [Drawin](callbacks/trait.Drawin.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_drawin {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::Drawin;
+        let lua_reg = register_lua!($global_name,  [
+            drawin_add_signal; add_signal,
+            drawin_connect_signal; connect_signal,
+            drawin_disconnect_signal; disconnect_signal,
+            drawin_emit_signal; emit_signal,
+            drawin_instances; instances,
+            drawin_set_index_miss_handler; set_index_miss_handler,
+            drawin_set_newindex_miss_handler; set_newindex_miss_handler,
+            drawin___call; __call,
+            drawin_geometry; geometry,
+            drawin___tostring_meta; __tostring_meta,
+            drawin_connect_signal_meta; connect_signal_meta,
+            drawin_disconnect_signal_meta; disconnect_signal_meta,
+            drawin___index_meta; __index_meta,
+            drawin___newindex_meta; __newindex_meta,
+            // Properties
+            drawin_drawable; drawable,
+            drawin_visible; visible,
+            drawin_ontop; ontop,
+            drawin_cursor; cursor,
+            drawin_x; x,
+            drawin_y; y,
+            drawin_width; width,
+            drawin_height; height,
+            drawin_type_; type_,
+            drawin_shape_bounding; shape_bounding,
+            drawin_shape_clip; shape_clip,
+            drawin_shape_input; shape_input
+        ]);
+
+        LUA.register_methods("drawin\0", &lua_reg)
+    }}
+}
+
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
 ///
