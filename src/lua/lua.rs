@@ -210,6 +210,20 @@ impl Lua {
             // TODO Push values to table
         }
     }
+
+    pub fn return_string<S: Into<String>>(&self, string: S)
+                                          -> Result<(), LuaErr> {
+        let return_val = string.into();
+        unsafe {
+            let lua = self.0;
+            let c_str = CString::new(return_val.clone())
+                .map_err(|_| FFIErr::NullByte(return_val))?;
+            lua_pushstring(lua, c_str.as_ptr());
+            // TODO Needed?
+            ::std::mem::forget(c_str);
+        }
+        Ok(())
+    }
 }
 
 

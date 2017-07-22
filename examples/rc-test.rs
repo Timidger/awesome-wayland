@@ -43,6 +43,14 @@ macro_rules! default_impl{
 
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
+    fn awesome_xrdb_get_value(&mut self, lua: Lua) -> c_int {
+        // TODO Add method to get args (in this case resource class and name)
+        lua.return_string("");
+        unsafe {
+            lua_pushnil(lua.0);
+        }
+        1
+    }
     default_impl!([
         awesome_quit,
         awesome_exec,
@@ -62,7 +70,6 @@ impl callbacks::Awesome for DummyStruct {
         awesome_xkb_set_layout_group,
         awesome_xkb_get_layout_group,
         awesome_xkb_get_group_names,
-        awesome_xrdb_get_value,
         awesome_kill,
         awesome_sync
     ]);
