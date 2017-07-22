@@ -167,4 +167,23 @@ screen.swap()
 --screen.__metatable.__index()
 --screen.__metatable.__newindex()
 
+-- Test tag functions
+tag.add_signal()
+tag.connect_signal()
+tag.disconnect_signal()
+tag.emit_signal()
+tag.instances()
+tag.set_index_miss_handler()
+tag.set_newindex_miss_handler()
+tag.__call()
+
+-- Test tag meta functions
+-- TODO Lib doesn't add meta functions yet
+--tag.__metatable.__tostring()
+--tag.__metatable.connect_signal()
+--tag.__metatable.disconnect_signal()
+--tag.__metatable.__index()
+--tag.__metatable.__newindex()
+--tag.__metatable.clients()
+
 print("Basic callback test complete")

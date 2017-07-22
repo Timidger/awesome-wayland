@@ -235,18 +235,18 @@ impl callbacks::Screen for DummyStruct {
 }
 impl callbacks::Tag for DummyStruct {
     default_impl!([
-        add_signal,
-        connect_signal,
-        disconnect_signal,
-        emit_signal,
-        instances,
-        set_index_miss_handler,
-        set_newindex_miss_handler,
-        __call,
-        clients,
-        name,
-        selected,
-        activated
+        tag_add_signal,
+        tag_connect_signal,
+        tag_disconnect_signal,
+        tag_emit_signal,
+        tag_instances,
+        tag_set_index_miss_handler,
+        tag_set_newindex_miss_handler,
+        tag___call,
+        tag_clients_meta,
+        tag_name,
+        tag_selected,
+        tag_activated
     ]);
 }
 
@@ -268,7 +268,7 @@ fn main() {
     register_mouse!(DummyStruct, AWESOME).unwrap();
     register_root!(DummyStruct, AWESOME).unwrap();
     register_screen!(DummyStruct, AWESOME).unwrap();
-    //register_tag!(DummyStruct, AWESOME).unwrap();
+    register_tag!(DummyStruct, AWESOME).unwrap();
 
 
 

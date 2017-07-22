@@ -381,6 +381,39 @@ macro_rules! register_screen {
     }}
 }
 
+/// Registers a struct that implements [Tag](callbacks/trait.Tag.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_tag {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::Tag;
+        let lua_reg = register_lua!($global_name,  [
+            tag_add_signal; add_signal,
+            tag_connect_signal; connect_signal,
+            tag_disconnect_signal; disconnect_signal,
+            tag_emit_signal; emit_signal,
+            tag_instances; instances,
+            tag_set_index_miss_handler; set_index_miss_handler,
+            tag_set_newindex_miss_handler; set_newindex_miss_handler,
+            tag___call; __call,
+            tag___tostring_meta; __tostring_meta,
+            tag_connect_signal_meta; connect_signal_meta,
+            tag_disconnect_signal_meta; disconnect_signal_meta,
+            tag___index_meta; __index_meta,
+            tag___newindex_meta; __newindex_meta,
+            tag_clients_meta; clients_meta,
+            tag_name; name,
+            tag_selected; selected,
+            tag_activated; activated
+        ]);
+
+        LUA.register_methods("tag\0", &lua_reg)
+    }}
+}
+
 /// Defines the methods associated with classes. These methods have default
 /// implementations, but can be defined by the user if they so choose.
 ///
