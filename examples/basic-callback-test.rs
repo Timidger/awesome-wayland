@@ -80,7 +80,7 @@ impl callbacks::Client for DummyStruct {
         client_instances,
         client_set_index_miss_handler,
         client_set_newindex_miss_handler,
-        client___get,
+        client_get,
         client___call,
         client___index,
         client___newindex,
