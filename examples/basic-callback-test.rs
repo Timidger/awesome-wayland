@@ -260,15 +260,6 @@ register_for_lua!(DummyStruct, AWESOME);
 
 fn main() {
     register_awesome!(DummyStruct, AWESOME).unwrap();
-    // TODO FIXME Fix this
-    // You need to change how register_* and consequently how register_lua works,
-    // by providing different C function names. You can have the same names bound to a global
-    // in lua, but you'll need to have the C name be unique.
-    // I suggest changing the array value to the register_lua macro:
-    // [
-    //     lua_func_name1; <global_name>_func_name (this is for C),
-    //     lua_func_name2; <global_name>_func_name (this is for C),
-    // ]
     register_button!(DummyStruct, AWESOME).unwrap();
     register_client!(DummyStruct, AWESOME).unwrap();
     //register_drawin!(DummyStruct, AWESOME).unwrap();
