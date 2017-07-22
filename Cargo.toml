@@ -8,3 +8,6 @@ authors = ["Timidger <APragmaticPlace@gmail.com>"]
 libc = "0.2.*"
 lua-sys = { version = "0.1.*", features = [] } # No compile-time bindings
 lazy_static = "0.2"
+
+[dev-dependencies]
+wlc = { version = "2.0.1", features = ["unsafe-stable"] } 

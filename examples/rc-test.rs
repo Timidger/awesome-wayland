@@ -6,12 +6,16 @@
 #[macro_use] extern crate awesome_wayland;
 #[macro_use] extern crate lazy_static;
 extern crate lua_sys;
+extern crate wlc;
+extern crate libc;
 use lua_sys::*;
 
+use libc::c_int;
 use awesome_wayland::{Lua, LuaErr, Awesome};
 use awesome_wayland::callbacks;
 use std::path::PathBuf;
 use std::default::Default;
+use std::collections::HashMap;
 
 const AWESOME_LIB: &'static str = "shims/awesome.lua";
 const BEAUTIFUL_LIB: &'static str = "shims/beautiful.lua";
@@ -84,6 +88,10 @@ impl callbacks::Button for DummyStruct {
 impl callbacks::Beautiful for DummyStruct {}
 
 impl callbacks::Client for DummyStruct {
+    fn client_get(&mut self, lua: Lua) -> c_int {
+        lua.return_table::<()>(HashMap::new());
+        1
+    }
     default_impl!([
         client_add_signal,
         client_connect_signal,
@@ -92,7 +100,6 @@ impl callbacks::Client for DummyStruct {
         client_instances,
         client_set_index_miss_handler,
         client_set_newindex_miss_handler,
-        client_get,
         client___call,
         client___index,
         client___newindex,
@@ -270,12 +277,20 @@ impl Default for DummyStruct {
 
 register_for_lua!(DummyStruct, AWESOME);
 
+struct Compositor;
+
+impl wlc::Callback for Compositor {}
+
 fn main() {
     register_all!(DummyStruct, AWESOME);
+
+    let compositor = Compositor;
 
     // Adds default awesome libs to path
     LUA.add_default_awesome_libs();
 
     // Run the user init script
     LUA.load_and_run("examples/rc.lua".into()).unwrap();
+
+    wlc::init(compositor).unwrap();
 }
