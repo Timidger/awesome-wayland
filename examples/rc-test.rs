@@ -97,7 +97,6 @@ impl callbacks::Button for DummyStruct {
         button_connect_signal,
         button_disconnect_signal,
         button_emit_signal,
-        button___call,
         button_set_index_miss_handler,
         button_set_newindex_miss_handler,
         button_add_signal,

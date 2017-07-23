@@ -173,16 +173,6 @@ impl Lua {
             class_lock.index_miss_handler = LUA_REFNIL;
             class_lock.newindex_miss_handler = LUA_REFNIL;
 
-            // TODO remove
-            let signals = &mut class_lock.signals;
-            let mut hasher = DefaultHasher::new();
-            hasher.write("new".as_bytes());
-            let id = hasher.finish();
-            let sigfuncs = vec!((&*::std::ptr::null_mut()) as _);
-            signals.push(Signal {
-                id, sigfuncs
-            });
-
             // TODO Update global list of classes
         }
         Ok(())
@@ -308,16 +298,17 @@ impl Lua {
     /// On success, the number of arguments that will be returned to Lua on its
     /// stack is returned as the `Ok` value.
     pub fn new_class(&self, class: &Mutex<Class>) -> Result<libc::c_int, LuaErr>{
-        let mut class_lock = class.lock()
-            .expect("Could not lock class");
+        let allocator = {
+            let mut class_lock = class.lock()
+                .expect("Could not lock class");
+            class_lock.allocator
+                .ok_or(LuaErr::ArgumentInvalid("Global class was not defined"))?
+        };
         unsafe {
             let lua = self.0;
             // TODO Ensure that the value passed in is a table,
             // no way to do that currently with lua_sys :(
-            let allocator = class_lock.allocator
-                .ok_or(LuaErr::ArgumentInvalid("Global class was not defined"))?;
-            let mut obj = allocator(self, &mut *class_lock);
-
+            allocator(lua);
             // push first key before iterating
             lua_pushnil(lua);
             // iterate over the property keys
@@ -330,9 +321,11 @@ impl Lua {
                     if !prop_name.is_null() {
                         let prop_name = CStr::from_ptr(prop_name).to_str()
                             .expect("Property name could not be converted");
+                        let class_lock = class.lock().unwrap();
                         let prop = self.class_get_property(&*class_lock, prop_name);
                         if let Some(new_f) = prop.map(|prop| prop.new) {
-                            new_f(self, &mut *obj);
+                            // TODO new_f
+                            //new_f(self, &mut *obj);
                         }
                     }
                 }
@@ -373,6 +366,30 @@ impl Lua {
                .map_err(|err|
                         LuaErr::EvalFFI(FFIErr::Conversion(err.into_cstring())))?)
 
+        }
+    }
+
+    /// Gets the argument as a cfunction.
+    pub unsafe fn get_arg_as_cfunction(&self, idx: libc::c_int)
+                                -> Result<unsafe extern fn() -> libc::c_int, LuaErr> {
+        unsafe {
+            let lua = self.0;
+            lua_tocfunction(lua, idx)
+                .ok_or(LuaErr::ArgumentInvalid("Expected a cfunction"))
+        }
+    }
+
+    pub fn get_arg_as_string(&self, idx: libc::c_int) -> Result<String, LuaErr> {
+        unsafe {
+            let lua = self.0;
+            let buf = lua_tolstring(lua, idx, ::std::ptr::null_mut());
+            if buf.is_null() {
+                return Err(LuaErr::ArgumentInvalid("Argument was not a string"))
+            }
+            let c_str = CStr::from_ptr(buf);
+            Ok(c_str.to_owned().into_string()
+               .map_err(|err|
+                        LuaErr::EvalFFI(FFIErr::Conversion(err.into_cstring())))?)
         }
     }
 

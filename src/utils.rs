@@ -119,6 +119,10 @@ macro_rules! register_button {
                 func: None
             }
         ];
+        {
+            let mut button = BUTTON_CLASS.try_lock().expect("Could not lock button class");
+            button.connect_signal("new", Some(button::button_new));
+        }
         LUA.register_class(&BUTTON_CLASS, "button\0", None,
                            Some(button::button_new), None, None,
                            Some(default::index_miss_property),
