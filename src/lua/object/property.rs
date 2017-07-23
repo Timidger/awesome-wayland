@@ -3,11 +3,11 @@ use super::class::PropF;
 
 pub struct Property {
     /// Name of the property
-    name: String,
+    pub name: String,
     /// Callback called when the property is found in object creation
-    new: PropF,
+    pub new: PropF,
     /// Callback called when the property is found in object __index
-    index: PropF,
+    pub index: PropF,
     /// Callback called when the property is found in object __newindex
-    new_index: PropF
+    pub new_index: PropF
 }

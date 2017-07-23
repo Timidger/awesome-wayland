@@ -87,6 +87,8 @@ macro_rules! register_awesome {
 macro_rules! register_button {
     ($callback_impl:ident, $global_name:ident) => {{
         use ::awesome_wayland::Button;
+        use ::awesome_wayland::callbacks::{default, button};
+        use ::awesome_wayland::callbacks::button::BUTTON_CLASS;
         let lua_reg = {
             register_lua!($global_name,  [
                 // Class methods
@@ -98,20 +100,30 @@ macro_rules! register_button {
                 button_set_index_miss_handler; set_index_miss_handler,
                 button_set_newindex_miss_handler; set_newindex_miss_handler,
                 // Object methods meta
-                button___tostring_meta; __tostring_meta,
-                button_connect_signal_meta; connect_signal_meta,
-                button_disconnect_signal_meta; button_disconnect_signal_meta,
+                button___tostring_meta; __tostring,
+                button_connect_signal_meta; connect_signal,
+                button_disconnect_signal_meta; button_disconnect_signal,
                 // Class methods meta
-                button___index_meta; __index_meta,
-                button___newindex_meta; __newindex_meta,
+                button___index_meta; __index,
+                button___newindex_meta; __newindex,
                 button___call; __call,
                 /* Properties */
                 button; button,
                 modifiers; modifiers
             ])
         };
-
-        LUA.register_methods("button\0", &lua_reg)
+        // TODO Fill this in with the meta methods from above!
+        let lua_meta = [
+            ::lua_sys::luaL_Reg {
+                name: ::std::ptr::null(),
+                func: None
+            }
+        ];
+        LUA.register_class(&BUTTON_CLASS, "button\0", None,
+                           Some(button::button_new), None, None,
+                           Some(default::index_miss_property),
+                           Some(default::newindex_miss_property),
+                           &lua_reg, &lua_meta)
     }}
 }
 
@@ -448,6 +460,7 @@ macro_rules! register_all {
 macro_rules! register_for_lua {
     ($callback_impl:ident, $global_name:ident) => {
         use ::std::sync::{Mutex, Arc};
+        use ::awesome_wayland::Class;
         lazy_static! {
             pub static ref $global_name: Mutex<Awesome<$callback_impl>> =
                 Mutex::new(Awesome::new());

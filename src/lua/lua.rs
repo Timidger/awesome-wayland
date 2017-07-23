@@ -2,10 +2,15 @@
 //! correct use of the Lua stack.
 
 use lua_sys::*;
+use libc;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 use std::ops::{Deref, DerefMut};
 use std::collections::HashMap;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::Hasher;
+use std::sync::{Arc, Mutex};
+use super::{Object, Class, AllocatorF, CollectorF, PropF, CheckerF, Property, Signal};
 
 const ALREADY_DEFINED: i32 = 0;
 
@@ -27,7 +32,7 @@ pub enum LuaErr {
     /// There was an FFI error during evalution
     EvalFFI(FFIErr),
     /// There was an error loading in arguments from the Lua call
-    ArgumentInvalid,
+    ArgumentInvalid(&'static str),
     /// A variable was already defined.
     AlreadyDefined(String),
     /// Could not find configuration file with the given path.
@@ -99,7 +104,94 @@ impl Lua {
         Ok(())
     }
 
+    /// Registers an object to be a class, with the given methods and
+    /// allocator, collector, etc.
+    pub fn register_class(&self,
+                          class: &Mutex<Class>,
+                          name: &'static str,
+                          parent: Option<Arc<Class>>,
+                          allocator: Option<AllocatorF>,
+                          collector: Option<CollectorF>,
+                          checker: Option<CheckerF>,
+                          index_miss_property: Option<PropF>,
+                          newindex_miss_property: Option<PropF>,
+                          methods: &[luaL_Reg],
+                          meta: &[luaL_Reg])
+                          -> Result<(), LuaErr> {
+        let mut class_lock = class.lock().expect("Could not lock class mutex");
+        unsafe {
+            let lua = self.0;
+            let class_ptr = (&mut *class_lock) as *mut _ as *mut _;
+            // Create object metatable
+            lua_newtable(lua);
+            // Register it with class pointer as key in the registry
+            // e.g class-pointer -> metatable
+            lua_pushlightuserdata(lua, class_ptr);
+            // Duplicate the object metatable
+            lua_pushvalue(lua, -2);
+            lua_rawset(lua, LUA_REGISTRYINDEX);
+            // Register class pointer with metatable as key in the registery
+            // e.g: metatable -> class-pointer
+            lua_pushvalue(lua, -1);
+            lua_pushlightuserdata(lua, class_ptr);
+            lua_rawset(lua, LUA_REGISTRYINDEX);
+
+            // Duplicate object's metatable
+            lua_pushvalue(lua, -1);
+            // Set garbage collector in the meta table
+            lua_pushcfunction(lua, Some(lua_class_gc));
+            lua_setfield(lua, -2, c_str!("__gc"));
+            // metatable.__index = metatable
+            lua_setfield(lua, -2, c_str!("__index"));
+
+            // Register meta
+            //luaL_setfuncs(lua, meta.as_ptr(), 0);
+
+            // Register methods
+            lua_newtable(lua);
+            luaL_setfuncs(lua, methods.as_ptr(), 0);
+            lua_pushvalue(lua, -1);
+            let c_name = CStr::from_bytes_with_nul(name.as_bytes())
+                .map_err(|_| LuaErr::EvalFFI(FFIErr::NullByte(name.into())))?;
+            lua_setglobal(lua, c_name.as_ptr());
+
+            // dup self as metatable
+            lua_pushvalue(lua, -1);
+            // set self as metatable
+            lua_setmetatable(lua, -2);
+            lua_pop(lua, 2);
+
+            class_lock.collector = collector;
+            class_lock.allocator = allocator;
+            class_lock.name = name.to_owned();
+            class_lock.index_miss_property = index_miss_property;
+            class_lock.newindex_miss_property = newindex_miss_property;
+            class_lock.checker = checker;
+            class_lock.parent = parent;
+            class_lock.tostring = None;
+            class_lock.instances = 0;
+            class_lock.index_miss_handler = LUA_REFNIL;
+            class_lock.newindex_miss_handler = LUA_REFNIL;
+
+            // TODO remove
+            let signals = &mut class_lock.signals;
+            let mut hasher = DefaultHasher::new();
+            hasher.write("new".as_bytes());
+            let id = hasher.finish();
+            let sigfuncs = vec!((&*::std::ptr::null_mut()) as _);
+            signals.push(Signal {
+                id, sigfuncs
+            });
+
+            // TODO Update global list of classes
+        }
+        Ok(())
+    }
+
     /// Registers the methods in the array to the given variable name.
+    ///
+    /// Automatically sets up the table, if you want the methods bound to a
+    /// class instead, use `register_class`.
     ///
     /// The requirement for the name to be static is to ensure that memory
     /// does not leak. The mechanism to ensure that names can be dynamically
@@ -207,6 +299,66 @@ impl Lua {
         ]);
     }
 
+    /// Generic constructor function for objects. Places the constructed class
+    /// into the mutex.
+    ///
+    /// Constructs a new class. The returned class should be immediantly moved
+    /// to a global mutex.
+    ///
+    /// On success, the number of arguments that will be returned to Lua on its
+    /// stack is returned as the `Ok` value.
+    pub fn new_class(&self, class: &Mutex<Class>) -> Result<libc::c_int, LuaErr>{
+        let mut class_lock = class.lock()
+            .expect("Could not lock class");
+        unsafe {
+            let lua = self.0;
+            // TODO Ensure that the value passed in is a table,
+            // no way to do that currently with lua_sys :(
+            let allocator = class_lock.allocator
+                .ok_or(LuaErr::ArgumentInvalid("Global class was not defined"))?;
+            let mut obj = allocator(self, &mut *class_lock);
+
+            // push first key before iterating
+            lua_pushnil(lua);
+            // iterate over the property keys
+            while (lua_next(lua, -2)) != 0 {
+                /* Check that the key is a string.
+                 * We cannot call tostring blindly or Lua will convert a key that is a
+                 * number TO A STRING, confusing lua_next() */
+                if lua_isstring(lua, 1) != 0 {
+                    let prop_name = luaL_checklstring(lua, 1, ::std::ptr::null_mut());
+                    if !prop_name.is_null() {
+                        let prop_name = CStr::from_ptr(prop_name).to_str()
+                            .expect("Property name could not be converted");
+                        let prop = self.class_get_property(&*class_lock, prop_name);
+                        if let Some(new_f) = prop.map(|prop| prop.new) {
+                            new_f(self, &mut *obj);
+                        }
+                    }
+                }
+                // Remove value
+                lua_pop(lua, 1);
+            }
+        }
+        Ok(1)
+    }
+
+
+    // TODO move?
+    /// Get a property of an object, if it exists.
+    /// If not found in the object, then its parent classes (if any)
+    /// are checked as well.
+    pub fn class_get_property<'class>(&self, class: &'class Class, property_name: &str)
+                              -> Option<&'class Property> {
+        // TODO Look up parent at parent class to see if the property exists there
+        for prop in &class.properties {
+            if prop.name == property_name {
+                return Some(prop)
+            }
+        }
+        None
+    }
+
     /// Gets the argument from indexing a lua table.
     /// This argument is always the second one.
     pub fn get_index_arg_string(&self) -> Result<String, LuaErr> {
@@ -214,7 +366,7 @@ impl Lua {
             let lua = self.0;
             let buf = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
             if buf.is_null() {
-                return Err(LuaErr::ArgumentInvalid)
+                return Err(LuaErr::ArgumentInvalid("Argument was not a string"))
             }
             let c_str = CStr::from_ptr(buf);
             Ok(c_str.to_owned().into_string()
@@ -247,7 +399,6 @@ impl Lua {
     }
 }
 
-
 impl Deref for Lua {
     type Target = lua_State;
 
@@ -264,4 +415,9 @@ impl DerefMut for Lua {
             &mut *self.0
         }
     }
+}
+
+unsafe extern "C" fn lua_class_gc(lua: *mut lua_State) -> libc::c_int {
+    // TODO Implement
+    unimplemented!()
 }

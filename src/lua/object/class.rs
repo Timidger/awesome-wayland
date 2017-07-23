@@ -4,47 +4,46 @@
 
 use libc::{c_int, c_uint};
 use lua_sys::*;
-use std::rc::Rc;
+use std::sync::{Arc, MutexGuard};
 use ::lua::Lua;
 use super::signal::Signal;
 use super::property::Property;
 
 /// Method that allocates new objects for the class.
-pub type AllocatorF = fn(&mut Lua) -> Object;
+pub type AllocatorF = fn(&Lua, &mut Class) -> &'static mut Object;
 /// Method that is called when the object is garbage collected.
 pub type CollectorF = fn(&mut Object);
 /// Function to call when accessing a property in some way.
-pub type PropF = fn(&mut Lua, &mut Object) -> c_int;
+pub type PropF = fn(&Lua, &mut Object) -> c_int;
 /// Function to call to check if an object is valid.
 pub type CheckerF = fn(&mut Object) -> bool;
 
 /// The super class to all [Class](Class)es.
 ///
 /// These can be downcasted into a concrete class type if necessary.
-trait Object: ::std::any::Any {
-    fn signals(&self) -> Vec<Signal>;
+pub trait Object: ::std::any::Any {
+    fn signals(&self) -> &[Signal];
 }
 
 /// A Lua object that is a class.
 pub struct Class {
-    name: String,
-    signals: Vec<Signal>,
-    // TODO Putting it an Rc, cause idk what else to put it in
-    parent: Rc<Class>,
+    pub name: String,
+    pub signals: Vec<Signal>,
+    pub parent: Option<Arc<Class>>,
     /// Method that allocates new objects for the class.
-    allocator: AllocatorF,
+    pub allocator: Option<AllocatorF>,
     /// Method that is called when the object is garbage collected.
-    collector: CollectorF,
-    properties: Vec<Property>,
-    index_miss_prop: PropF,
-    newindex_miss_prop: PropF,
-    checker: CheckerF,
-    instances: i32,
-    tostring: PropF,
+    pub collector: Option<CollectorF>,
+    pub checker: Option<CheckerF>,
+    pub properties: Vec<Property>,
+    pub index_miss_property: Option<PropF>,
+    pub newindex_miss_property: Option<PropF>,
+    pub instances: i32,
+    pub tostring: Option<PropF>,
     // TODO Do we need these? These are pointers to methods on the stack
     // And are wildly unsafe. See how they are used first
-    index_miss_handler: c_int,
-    newindex_miss_handler: c_int
+    pub index_miss_handler: c_int,
+    pub newindex_miss_handler: c_int
 }
 
 /// Get an object lua_class
@@ -69,4 +68,24 @@ pub unsafe fn class_get<'a>(l: *mut lua_State, idx: c_int) -> Option<&'a Class> 
 
 pub unsafe fn usemetatable(l: *mut lua_State, idxobj: c_int, idxfield: c_int) -> bool {
     unimplemented!()
+}
+
+impl ::std::default::Default for Class {
+    fn default() -> Self {
+        Class {
+            name: String::new(),
+            signals: Vec::new(),
+            parent: None,
+            allocator: None,
+            collector: None,
+            checker: None,
+            properties: Vec::new(),
+            index_miss_property: None,
+            newindex_miss_property: None,
+            instances: 0,
+            tostring: None,
+            index_miss_handler: 0,
+            newindex_miss_handler: 0
+        }
+    }
 }

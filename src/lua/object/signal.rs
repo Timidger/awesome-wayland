@@ -4,9 +4,9 @@ use std::cmp::{Eq, PartialEq};
 
 pub struct Signal {
     /// Unique ID for the signal
-    id: u64,
+    pub id: u64,
     /// The functions to call for this signal
-    sigfuncs: Vec<c_void>
+    pub sigfuncs: Vec<&'static c_void>
 }
 
 impl PartialEq for Signal {

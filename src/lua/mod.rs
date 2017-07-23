@@ -10,6 +10,7 @@ mod lua;
 
 pub use self::object::{signal, property};
 pub use self::object::class::{self, Object, Class, AllocatorF, CollectorF, PropF, CheckerF};
+pub use self::object::{Property, Signal};
 pub use self::lua::{Lua, LuaErr, FFIErr};
 pub use self::awesome::{Awesome};
 pub use self::callbacks::*;
