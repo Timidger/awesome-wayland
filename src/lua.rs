@@ -265,3 +265,38 @@ impl DerefMut for Lua {
         }
     }
 }
+
+/// These are methods that are straight Rust-version copies of their equivalents
+/// defined in the Awesome library.
+///
+/// They should not be used directly and instead you should use [Lua](./Lua).
+pub mod luaA {
+    // This weird line is so that I can use luaA namespace explicitly here.
+    use super::luaA;
+    use lua_sys::*;
+    use libc;
+    pub unsafe fn openlib(lua: *mut lua_State, name: *const libc::c_char,
+                          methods: &[luaL_Reg], meta: &[luaL_Reg]) {
+        luaL_newmetatable(lua, name);
+        lua_pushvalue(lua, -1); // dup meta table
+        lua_setfield(lua, -2, c_str!("__index")); // metatable.__index = metatable
+
+        luaA::registerlib(lua, ::std::ptr::null_mut(), meta);
+        luaA::registerlib(lua, name, methods);
+        lua_pushvalue(lua, -1); // dup self as meta table
+        lua_setmetatable(lua, -2); // set self as meta table
+        lua_pop(lua, 2);
+    }
+
+    pub unsafe fn registerlib(lua: *mut lua_State, libname: *const libc::c_char,
+                              l: &[luaL_Reg]) {
+        if ! libname.is_null() {
+            lua_newtable(lua);
+            luaL_setfuncs(lua, l.as_ptr(), 0);
+            lua_pushvalue(lua, -1);
+            lua_setglobal(lua, libname);
+        } else {
+            luaL_setfuncs(lua, l.as_ptr(), 0);
+        }
+    }
+}
