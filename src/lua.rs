@@ -399,4 +399,55 @@ pub mod luaA {
                              -> lua_Integer {
         return ::utils::luaL_opt(lua, |lua, n| luaA::checkinteger(lua, n) as lua_Integer, narg, def);
     }
+
+    pub unsafe fn getopt_integer(lua: *mut lua_State, idx: libc::c_int,
+                                 name: *const libc::c_char,
+                                 mut def: lua_Integer) -> libc::c_int {
+        lua_getfield(lua, idx, name);
+        let lua_t = lua_type(lua, -1);
+        let is_nil = lua_t == LUA_TNIL as i32;
+        let is_number = lua_t == LUA_TNUMBER as i32;
+        if is_nil || is_number {
+            def = luaA::optinteger(lua, -1, def);
+        }
+        lua_pop(lua, 1);
+        return def as libc::c_int;
+    }
+
+    pub unsafe fn checkinteger_range(lua: *mut lua_State, n: libc::c_int,
+                                     min: lua_Number, max: lua_Number)
+                                     -> libc::c_int {
+        let result = luaA::checkinteger(lua, n) as lua_Number;
+        if result < min || result > max {
+            luaA::rangeerror(lua, n, min, max);
+        }
+        return result as libc::c_int;
+    }
+
+    pub unsafe fn optinteger_range(lua: *mut lua_State, narg: libc::c_int,
+                                   def: lua_Integer, min: lua_Number,
+                                   max: lua_Number) -> lua_Integer {
+        let lua_t = lua_type(lua, narg);
+        let is_none_or_nil = lua_t == LUA_TNIL as i32 || lua_t == LUA_TNONE;
+        if is_none_or_nil {
+            return def;
+        }
+        return luaA::checkinteger_range(lua, narg, min, max) as lua_Integer;
+    }
+
+    pub unsafe fn getopt_integer_range(lua: *mut lua_State, idx: libc::c_int,
+                                       name: *const libc::c_char,
+                                       mut def: lua_Integer,
+                                       min: lua_Number, max: lua_Number)
+                                       -> libc::c_int {
+        lua_getfield(lua, idx, name);
+        let lua_t = lua_type(lua, -1);
+        let is_nil = lua_t == LUA_TNIL as i32;
+        let is_number = lua_t == LUA_TNUMBER as i32;
+        if is_nil || is_number {
+            def = luaA::optinteger_range(lua, -1, def, min, max);
+        }
+        lua_pop(lua, 1);
+        return def as libc::c_int;
+    }
 }
