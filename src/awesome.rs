@@ -11,10 +11,6 @@ use std::sync::Mutex;
 /// Represents the bindings to the awesome libraries.
 /// Contains the raw Lua context, as well as the struct that has all of the
 /// necessary callbacks defined that are called from Lua.
-///
-/// The callbacks will only live as long as the `T`
-/// (which is owned by `Awesome`), so once this struct is dropped the callbacks
-/// are immediately removed from the Lua thread to ensure safety.
 #[derive(Debug)]
 pub struct Awesome<T>
     where T: callbacks::Awesome + Beautiful + Button +
