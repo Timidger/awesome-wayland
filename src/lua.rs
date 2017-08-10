@@ -337,4 +337,52 @@ pub mod luaA {
         }
         return lua_toboolean(lua, n);
     }
+
+    pub unsafe fn getopt_number(lua: *mut lua_State, idx: libc::c_int,
+                                name: *const libc::c_char, mut def: lua_Number)
+                                -> lua_Number {
+        lua_getfield(lua, idx, name);
+        let is_nil = lua_type(lua, -1) == LUA_TNIL as i32;
+        let is_num = lua_isnumber(lua, -1) != 0;
+        if is_nil || is_num {
+            def = luaL_optnumber(lua, -1, def);
+        }
+        lua_pop(lua, 1);
+        return def;
+    }
+
+    pub unsafe fn checknumber_range(lua: *mut lua_State, n: libc::c_int,
+                                    min: lua_Number, max: lua_Number)
+                                    -> lua_Number {
+        let result = lua_tonumber(lua, n);
+        if result < min || result > max {
+            luaA::rangeerror(lua, n, min, max);
+        }
+        return result;
+    }
+
+    pub unsafe fn optnumber_range(lua: *mut lua_State, narg: libc::c_int,
+                                  def: lua_Number, min: lua_Number,
+                                  max: lua_Number) -> lua_Number {
+        let lua_t = lua_type(lua, narg);
+        let is_none_or_nil = lua_t == LUA_TNIL as i32 || lua_t == LUA_TNONE;
+        if is_none_or_nil {
+            return def;
+        }
+        return luaA::checknumber_range(lua, narg, min, max);
+    }
+
+    pub unsafe fn getopt_number_range(lua: *mut lua_State, idx: libc::c_int,
+                                      name: *const libc::c_char,
+                                      mut def: lua_Number, min: lua_Number,
+                                      max: lua_Number) -> lua_Number {
+        lua_getfield(lua, idx, name);
+        let is_nil = lua_type(lua, -1) == LUA_TNIL as i32;
+        let is_number = lua_isnumber(lua, -1) != 0;
+        if is_nil || is_number {
+            def = luaA::optnumber_range(lua, -1, def, min, max);
+        }
+        lua_pop(lua, 1);
+        return def;
+    }
 }
