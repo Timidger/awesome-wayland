@@ -71,10 +71,10 @@ impl Lua {
     pub fn load_and_run(&self, path: PathBuf) -> Result<(), LuaErr> {
         let path_str = path.to_str()
             .ok_or_else(||
-                        LuaErr::Load(FFIErr::InvalidUTF(path.to_str().unwrap().into())))
+                        LuaErr::Load(FFIErr::InvalidUTF(format!("{:?}", path))))
             .and_then(|s| CString::new(s)
                       .map_err(|_|
-                               LuaErr::Load(FFIErr::NullByte(path.to_str().unwrap().into()))))?;
+                               LuaErr::Load(FFIErr::NullByte(format!("{:?}", path)))))?;
         unsafe {
             let lua = &mut *self.0;
             let mut status = luaL_loadfile(lua, path_str.as_ptr());
@@ -87,7 +87,7 @@ impl Lua {
                 Err(LuaErr::FileNotFound(path.clone(), error))?
             }
 
-            // Run configuration file
+            // Run the file
             status = lua_pcallk(lua, 0, LUA_MULTRET, 0, 0, None);
             if status != 0 {
                 let error = lua_tostring(lua, -1);
