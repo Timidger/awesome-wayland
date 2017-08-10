@@ -5,15 +5,15 @@ use libc::c_int;
 
 pub trait Root {
     /* Methods */
-    fn root_buttons(&mut self, lua: Lua) -> c_int;
-    fn root_keys(&mut self, lua: Lua) -> c_int;
-    fn root_cursor(&mut self, lua: Lua) -> c_int;
-    fn root_fake_input(&mut self, lua: Lua) -> c_int;
-    fn root_drawins(&mut self, lua: Lua) -> c_int;
-    fn root_wallpaper(&mut self, lua: Lua) -> c_int;
-    fn root_size(&mut self, lua: Lua) -> c_int;
-    fn root_size_mm(&mut self, lua: Lua) -> c_int;
-    fn root_tags(&mut self, lua: Lua) -> c_int;
-    fn root___index(&mut self, lua: Lua) -> c_int;
-    fn root___newindex(&mut self, lua: Lua) -> c_int;
+    fn root_buttons(&self, lua: Lua) -> c_int;
+    fn root_keys(&self, lua: Lua) -> c_int;
+    fn root_cursor(&self, lua: Lua) -> c_int;
+    fn root_fake_input(&self, lua: Lua) -> c_int;
+    fn root_drawins(&self, lua: Lua) -> c_int;
+    fn root_wallpaper(&self, lua: Lua) -> c_int;
+    fn root_size(&self, lua: Lua) -> c_int;
+    fn root_size_mm(&self, lua: Lua) -> c_int;
+    fn root_tags(&self, lua: Lua) -> c_int;
+    fn root___index(&self, lua: Lua) -> c_int;
+    fn root___newindex(&self, lua: Lua) -> c_int;
 }

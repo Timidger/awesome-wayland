@@ -21,7 +21,7 @@ macro_rules! register_lua {
         use ::awesome_wayland::callbacks::Awesome;
         use ::libc::c_int;
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> c_int {
-            let mut callback = $global_name.lock()
+            let callback = $global_name.read()
                 .expect("Could not lock user defined callback object");
             callback.callbacks.$inner(::Lua::from_ptr(lua))
         })*),*
@@ -447,10 +447,10 @@ macro_rules! register_all {
 #[macro_export]
 macro_rules! register_for_lua {
     ($callback_impl:ident, $global_name:ident) => {
-        use ::std::sync::{Mutex, Arc};
+        use ::std::sync::{RwLock, Arc};
         lazy_static! {
-            pub static ref $global_name: Mutex<Awesome<$callback_impl>> =
-                Mutex::new(Awesome::new());
+            pub static ref $global_name: RwLock<Awesome<$callback_impl>> =
+                RwLock::new(Awesome::new());
             pub static ref LUA: Arc<Lua> = Arc::new(Lua::new());
         }
     }
@@ -462,6 +462,6 @@ macro_rules! register_for_lua {
 /// For now, it just defines them
 macro_rules! properties {
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&mut self, lua: Lua) -> c_int;)*),*
+        $($(fn $inner(&self, lua: Lua) -> c_int;)*),*
     };
 }
