@@ -308,4 +308,14 @@ pub mod luaA {
         lua_concat(lua, 2);
         return luaL_argerror(lua, narg, msg);
     }
+
+    pub unsafe fn rangeerror(lua: *mut lua_State, narg: libc::c_int,
+                             min: libc::c_double, max: libc::c_double)
+                             -> libc::c_int {
+        let msg = lua_pushfstring(lua, c_str!("value in [%f, %f] expected, got %f"),
+                                  min, max, lua_tonumber(lua, narg) as libc::c_double);
+        luaL_traceback(lua, lua, ::std::ptr::null_mut(), 2);
+        lua_concat(lua, 2);
+        return luaL_argerror(lua, narg, msg);
+    }
 }
