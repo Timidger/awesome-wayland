@@ -385,4 +385,18 @@ pub mod luaA {
         lua_pop(lua, 1);
         return def;
     }
+
+    pub unsafe fn checkinteger(lua: *mut lua_State, n: libc::c_int) -> libc::c_int {
+        let d = lua_tonumber(lua, n);
+        let need_to_round = d != (d as libc::c_int as lua_Number);
+        if need_to_round {
+            luaA::typeerror(lua, n, c_str!("integer"));
+        }
+        return d as libc::c_int;
+    }
+
+    pub unsafe fn optinteger(lua: *mut lua_State, narg: libc::c_int, def: lua_Integer)
+                             -> lua_Integer {
+        return luaL_opt(lua, luaA::checkinteger, narg, def);
+    }
 }
