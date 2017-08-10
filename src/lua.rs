@@ -271,6 +271,15 @@ impl DerefMut for Lua {
 ///
 /// They should not be used directly and instead you should use [Lua](./Lua).
 pub mod luaA {
+    // TODO move this somewhere else...
+
+    #[repr(C)]
+    pub struct area_t {
+        x: i16,
+        y: i16,
+        width: u16,
+        height: u16
+    }
     // This weird line is so that I can use luaA namespace explicitly here.
     use super::luaA;
     use lua_sys::*;
@@ -449,5 +458,18 @@ pub mod luaA {
         }
         lua_pop(lua, 1);
         return def as libc::c_int;
+    }
+
+    pub unsafe fn pusharea(lua: *mut lua_State, geo: area_t) -> libc::c_int {
+        lua_createtable(lua, 0, 4);
+        lua_pushinteger(lua, geo.x as lua_Integer);
+        lua_setfield(lua, -2, c_str!("x"));
+        lua_pushinteger(lua, geo.y as lua_Integer);
+        lua_setfield(lua, -2, c_str!("y"));
+        lua_pushinteger(lua, geo.width as lua_Integer);
+        lua_setfield(lua, -2, c_str!("width"));
+        lua_pushinteger(lua, geo.height as lua_Integer);
+        lua_setfield(lua, -2, c_str!("height"));
+        return 1;
     }
 }
