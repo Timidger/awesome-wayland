@@ -318,4 +318,23 @@ pub mod luaA {
         lua_concat(lua, 2);
         return luaL_argerror(lua, narg, msg);
     }
+
+    pub unsafe fn getuservalue(lua: *mut lua_State, idx: libc::c_int) {
+        lua_getuservalue(lua, idx);
+    }
+
+    pub unsafe fn setuservalue(lua: *mut lua_State, idx: libc::c_int) {
+        lua_setuservalue(lua, idx);
+    }
+
+    pub unsafe fn rawlen(lua: *mut lua_State, idx: libc::c_int) -> libc::size_t {
+        return lua_rawlen(lua, idx) as libc::size_t ;
+    }
+
+    pub unsafe fn checkboolean(lua: *mut lua_State, n: libc::c_int) -> libc::c_int {
+        if lua_type(lua, n) != LUA_TBOOLEAN as i32 {
+            luaA::typeerror(lua, n, c_str!("boolean"));
+        }
+        return lua_toboolean(lua, n);
+    }
 }
