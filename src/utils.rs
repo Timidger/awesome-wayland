@@ -21,9 +21,9 @@ macro_rules! register_lua {
         use ::awesome_wayland::callbacks::Awesome;
         use ::libc::c_int;
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> c_int {
-            let mut callback = $global_name.lock()
-                .expect("Could not lock user defined callback object");
-            callback.callbacks.$inner(::Lua::from_ptr(lua))
+            //let mut callback = $global_name.lock()
+            //    .expect("Could not lock user defined callback object");
+            (*UGLY_HACK.0).callbacks.$inner(::Lua::from_ptr(lua))
         })*),*
             [
                 $($(register_lua!($inner, $inner_lua_name)),*),*,
@@ -101,7 +101,7 @@ macro_rules! register_button {
                 button_set_newindex_miss_handler; set_newindex_miss_handler,
                 // Object methods meta
                 button___tostring_meta; __tostring,
-                button_connect_signal_meta; connect_signal,
+                button_connect_signal_meta; connect_signal_meta,
                 button_disconnect_signal_meta; button_disconnect_signal,
                 // Class methods meta
                 button___index_meta; __index,
@@ -112,6 +112,10 @@ macro_rules! register_button {
                 modifiers; modifiers
             ])
         };
+        {
+            let mut button = BUTTON_CLASS.try_lock().expect("Could not lock button class");
+            //button.connect_signal("new", Some(button::button_new));
+        }
         // TODO Fill this in with the meta methods from above!
         let lua_meta = [
             ::lua_sys::luaL_Reg {
@@ -119,10 +123,6 @@ macro_rules! register_button {
                 func: None
             }
         ];
-        {
-            let mut button = BUTTON_CLASS.try_lock().expect("Could not lock button class");
-            button.connect_signal("new", Some(button::button_new));
-        }
         LUA.register_class(&BUTTON_CLASS, "button\0", None,
                            Some(button::button_new), None, None,
                            Some(default::index_miss_property),
@@ -465,10 +465,17 @@ macro_rules! register_for_lua {
     ($callback_impl:ident, $global_name:ident) => {
         use ::std::sync::{Mutex, Arc};
         use ::awesome_wayland::Class;
+        pub struct Wrapper (*mut Awesome<$callback_impl>);
+        unsafe impl Send for Wrapper{}
+        unsafe impl Sync for Wrapper{}
         lazy_static! {
             pub static ref $global_name: Mutex<Awesome<$callback_impl>> =
                 Mutex::new(Awesome::new());
             pub static ref LUA: Arc<Lua> = Arc::new(Lua::new());
+            pub static ref UGLY_HACK: Wrapper = {
+                let mut global = $global_name.lock().unwrap();
+                Wrapper((&mut *global) as *mut _)
+            };
         }
     }
 }
@@ -481,4 +488,19 @@ macro_rules! properties {
     ($([ $( $inner:ident ),+ ])+) => {
         $($(fn $inner(&mut self, lua: Lua) -> c_int;)*),*
     };
+}
+
+use ::lua::Lua;
+use lua_sys::lua_type;
+pub fn print_stack(lua: &Lua, idx: i32) {
+    unsafe {
+        for i in -10..10 {
+            let ty = lua_type(lua.0, i);
+            if ty == 4 {
+                println!("@ {}: {} ({})", i, ty, lua.get_arg_as_string(i).unwrap());
+            } else {
+                println!("@ {}: {}", i, ty);
+            }
+        }
+    }
 }

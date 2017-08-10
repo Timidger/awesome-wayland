@@ -60,6 +60,7 @@ impl Class {
     /// If a signal already exists with the given name, the function is
     /// appended to the list of functions to call.
     pub fn connect_signal(&mut self, name: &str, func: lua_CFunction) {
+        println!("Connect signal {:?} to func {:#?}", name, func);
         let mut hasher = DefaultHasher::new();
         hasher.write(name.as_bytes());
         let id = hasher.finish();
@@ -91,6 +92,7 @@ impl Class {
         let id = hasher.finish();
         if let Some(mut sig) = self.signals.iter().find(|sig| sig.id == id) {
             for func in &sig.sigfuncs {
+                println!("Found func {:?}", func);
                 lua_pushcfunction(lua, *func);
             }
             return Ok(());

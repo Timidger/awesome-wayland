@@ -1,23 +1,18 @@
-//! Attempts to load the shim files used in basic Awesome testing.
-//! This is the most minimal stress test to ensure globals are defined
-//! correctly by the backend.
+//! Tests out the class-based abilites that we give to Lua.
+//! E.g, construcors and other OO capabilites.
 #![allow(unused_variables)]
 
 #[macro_use] extern crate awesome_wayland;
 #[macro_use] extern crate lazy_static;
 extern crate lua_sys;
-extern crate wlc;
 extern crate libc;
 use lua_sys::*;
-
 use libc::c_int;
+
 use awesome_wayland::{Lua, LuaErr, Awesome};
 use awesome_wayland::callbacks;
 use std::path::PathBuf;
 use std::default::Default;
-use std::collections::HashMap;
-
-const AWESOME_THEMES_PATH: &str = "/usr/share/awesome/themes";
 
 // Contains no state, just here so we can register the libs.
 pub struct DummyStruct;
@@ -26,51 +21,13 @@ pub struct DummyStruct;
 /// Save on a LOT of typing
 macro_rules! default_impl{
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&mut self, lua: Lua) -> c_int {
-            //println!("Called {:?}", stringify!($inner));
-            0
-        })*),*
+        $($(fn $inner(&mut self, lua: Lua) -> c_int {0})*),*
     };
 }
 
 
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
-    fn awesome_xrdb_get_value(&mut self, lua: Lua) -> c_int {
-        // TODO Add method to get args (in this case resource class and name)
-        lua.return_string("");
-        unsafe {
-            lua_pushnil(lua.0);
-        }
-        1
-    }
-
-    fn awesome___index(&mut self, lua: Lua) -> c_int {
-        // TODO Check if has a metatable, and if so use that.
-        let buf = lua.get_index_arg_string().unwrap();
-
-        match buf.as_str() {
-            "version" => {
-                lua.return_string("v1");
-                1
-            },
-            "themes_path" => {
-                lua.return_string(AWESOME_THEMES_PATH);
-                1
-            },
-            "conffile" => {
-                lua.return_string("./examples/rc.lua");
-                1
-            }
-            val => {
-                // Didn't find anything
-                // TODO add something so I can call:
-                // signal_object_emit(L, &global_signals, "debug::index::miss", 2);
-                eprintln!("Val ({:#?}) is not set", val);
-                0
-            }
-        }
-    }
     default_impl!([
         awesome_quit,
         awesome_exec,
@@ -85,10 +42,12 @@ impl callbacks::Awesome for DummyStruct {
         awesome_register_xproperty,
         awesome_set_xproperty,
         awesome_get_xproperty,
+        awesome___index,
         awesome___newindex,
         awesome_xkb_set_layout_group,
         awesome_xkb_get_layout_group,
         awesome_xkb_get_group_names,
+        awesome_xrdb_get_value,
         awesome_kill,
         awesome_sync
     ]);
@@ -97,7 +56,6 @@ impl callbacks::Awesome for DummyStruct {
 impl callbacks::Button for DummyStruct {
     default_impl!([
         button___tostring_meta,
-        button_connect_signal,
         button_disconnect_signal,
         button_emit_signal,
         button_set_index_miss_handler,
@@ -113,10 +71,6 @@ impl callbacks::Button for DummyStruct {
 impl callbacks::Beautiful for DummyStruct {}
 
 impl callbacks::Client for DummyStruct {
-    fn client_get(&mut self, lua: Lua) -> c_int {
-        lua.return_table::<()>(HashMap::new());
-        1
-    }
     default_impl!([
         client_add_signal,
         client_connect_signal,
@@ -125,6 +79,7 @@ impl callbacks::Client for DummyStruct {
         client_instances,
         client_set_index_miss_handler,
         client_set_newindex_miss_handler,
+        client_get,
         client___call,
         client___index,
         client___newindex,
@@ -302,20 +257,16 @@ impl Default for DummyStruct {
 
 register_for_lua!(DummyStruct, AWESOME);
 
-struct Compositor;
-
-impl wlc::Callback for Compositor {}
-
 fn main() {
     register_all!(DummyStruct, AWESOME);
 
-    let compositor = Compositor;
-
-    // Adds default awesome libs to path
-    LUA.add_default_awesome_libs();
-
-    // Run the user init script
-    LUA.load_and_run("examples/rc.lua".into()).unwrap();
-
-    wlc::init(compositor).unwrap();
+    match LUA.load_and_run(PathBuf::from("examples/class-test.lua")) {
+        Ok(_) => {},
+        Err(LuaErr::Load(_)) => {
+            println!("Could not find lua file! Please run this from the root \
+                      of the project directory");
+            ::std::process::exit(1);
+        },
+        err => err.unwrap()
+    }
 }

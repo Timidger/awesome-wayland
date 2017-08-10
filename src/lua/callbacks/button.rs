@@ -6,6 +6,7 @@ use libc::c_int;
 use lua_sys::*;
 use ::lua::{Class, Object, Signal};
 use std::sync::{Mutex, MutexGuard};
+use std::ffi::CString;
 
 // TODO This is a class, need to setup the class properly...
 // Can probably do that in the `register` macro.
@@ -17,12 +18,63 @@ lazy_static! {
 pub trait Button {
     /* Methods */
     fn button_add_signal(&mut self, lua: Lua) -> c_int;
-    fn button_connect_signal(&mut self, lua: Lua) -> c_int; /* {
-        // TODO error handling
-        let name = lua.get_arg_as_string(-1)
-            .expect("Was not provided a name for the signal to connect to");
+    fn button_connect_signal(&mut self, lua: Lua) -> c_int {
+        /* The state of the stack:
+        0: whatever
+        -1: The object (in this case button) (oud)
+        -2: The name of the signal to bind to (e.g "new")
+        -3: The function to bind to the signal (e.g function() end) (ud)
+        */
         unsafe {
-            match lua.get_arg_as_cfunction(-2) {
+            // TODO Assert -1
+            //assert!(lua_type(lua.0, -1))
+            ::utils::print_stack(&lua, 10);
+            assert!(lua_type(lua.0, -2) == LUA_TSTRING as i32);
+            assert!(lua_type(lua.0, -3) == LUA_TFUNCTION as i32);
+            // TODO Is supposed to be an &Object or Box<Object> or whatever
+            let userdata = lua_touserdata(lua.0, -1);
+            // get the environment table from the object
+
+            //  START luaA_object_ref_item
+            lua_getuservalue(lua.0, -1);
+            // CALL luaA_object_incref
+            //  END luaA_object_ref_item
+            // USE THAT for:
+            // signal_connect
+
+
+
+
+
+
+
+
+
+
+            //lua_pop(lua.0, 1);
+            let string = CString::new(lua.get_arg_as_string(-2).unwrap()).unwrap();
+            lua_pushstring(lua.0, string.as_ptr());
+            println!("STRING: {:?}", string);
+            lua_callk(lua.0, 1, 1, 0, None);
+            panic!();
+            /*let idx = -2;
+            let ex = lua.get_arg_as_string(idx).unwrap();
+            println!("GOT {} for {}", ex, idx);
+            let fnc = lua_topointer(lua.0, -1) as *const unsafe extern "C" fn(*mut lua_State) -> i32;
+            println!("GOT POINTER: {:?}", fnc);
+            let fnc =  lua.get_arg_as_cfunction(-1).unwrap();
+            let string = CString::new(lua.get_arg_as_string(1).unwrap()).unwrap();
+            lua_pushstring(lua.0, string.as_ptr());
+            lua_pushcfunction(lua.0, Some(::std::mem::transmute(fnc)));*/
+            lua_callk(lua.0, 1, 1, 0, None);
+        }
+        panic!();
+        // TODO error handling
+        let name = lua.get_arg_as_string(1)
+            .expect("Was not provided a name for the signal to connect to");
+        eprintln!("Connecting a button signal {:?}", name);
+        unsafe {
+            match lua.get_arg_as_cfunction(1) {
                 Ok(func) => {
                     let mut button = BUTTON_CLASS.lock()
                         .expect("Could not lock button class");
@@ -36,7 +88,7 @@ pub trait Button {
             }
         }
         0
-    }*/
+    }
     fn button_disconnect_signal(&mut self, lua: Lua) -> c_int;
     fn button_emit_signal(&mut self, lua: Lua) -> c_int;
     fn button_instances(&mut self, lua: Lua) -> c_int;
@@ -93,11 +145,11 @@ impl Object for ButtonType {
 pub unsafe extern "C" fn button_new(lua: *mut lua_State) -> c_int {
     // TODO Not try_lock
     {
-    let mut button = BUTTON_CLASS.try_lock().unwrap();
-    let user_ptr = lua_newuserdata(lua, ::std::mem::size_of::<ButtonType>());
-    button.instances += 1;
-    // Set the type of the data to be Button
-    lua_pushlightuserdata(lua, &mut *button as *mut _ as *mut _);
+        let mut button = BUTTON_CLASS.try_lock().unwrap();
+        let user_ptr = lua_newuserdata(lua, ::std::mem::size_of::<ButtonType>());
+        button.instances += 1;
+        // Set the type of the data to be Button
+        lua_pushlightuserdata(lua, &mut *button as *mut _ as *mut _);
     }
     lua_rawget(lua, LUA_REGISTRYINDEX);
     lua_setmetatable(lua, -2);
@@ -110,16 +162,19 @@ pub unsafe extern "C" fn button_new(lua: *mut lua_State) -> c_int {
     // Set uservale
     lua_setuservalue(lua, -2);
     lua_pushvalue(lua, -1);
-    // TODO luaA_class_emit_signal(L, &(lua_class), "new", 1);
-    //lua_.class_emit_signal(button.signals.as_slice(), "new", 1);
+    // Now emit the signal, e.g call the function bound to the "new" signal
     {
         let button = BUTTON_CLASS.try_lock().unwrap();
         if let Err(err) = button.push_signal(lua, "new") {
-            eprintln!("Error: {:#?}", err);
-            panic!("Error");
+            eprintln!("Could not push new signal: {:#?}", err);
+            return 0
         }
     }
+    // TODO remove
     lua_newtable(lua);
+    lua_pushinteger(lua, 0);
+    lua_pushfstring(lua, c_str!("hello"));
+    lua_settable(lua, -3);
     lua_callk(lua, 1, 1, 0, None);
     1
 }
