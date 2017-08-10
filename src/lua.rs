@@ -340,6 +340,14 @@ pub mod luaA {
         return lua_rawlen(lua, idx) as libc::size_t ;
     }
 
+    pub unsafe fn checkfunction(lua: *mut lua_State, idx: libc::c_int) {
+        let lua_t = lua_type(lua, idx);
+        let is_function = lua_t == LUA_TFUNCTION as i32;
+        if ! is_function {
+            luaA::typeerror(lua, idx, c_str!("function"));
+        }
+    }
+
     pub unsafe fn checkboolean(lua: *mut lua_State, n: libc::c_int) -> libc::c_int {
         if lua_type(lua, n) != LUA_TBOOLEAN as i32 {
             luaA::typeerror(lua, n, c_str!("boolean"));
@@ -471,5 +479,26 @@ pub mod luaA {
         lua_pushinteger(lua, geo.height as lua_Integer);
         lua_setfield(lua, -2, c_str!("height"));
         return 1;
+    }
+
+    pub unsafe fn register(lua: *mut lua_State, idx: libc::c_int,
+                           ptr: *mut libc::c_int) -> libc::c_int {
+        lua_pushvalue(lua, idx);
+        if *ptr != LUA_REFNIL {
+            luaL_unref(lua, LUA_REGISTRYINDEX, *ptr);
+        }
+        *ptr = luaL_ref(lua, LUA_REGISTRYINDEX);
+        return 0;
+    }
+
+    pub unsafe fn unregister(lua: *mut lua_State, ptr: *mut libc::c_int) {
+        luaL_unref(lua, LUA_REGISTRYINDEX, *ptr);
+        *ptr = LUA_REFNIL;
+    }
+
+    pub unsafe fn registerfct(lua: *mut lua_State, idx: libc::c_int,
+                              fct: *mut libc::c_int) -> libc::c_int {
+        luaA::checkfunction(lua, idx);
+        return luaA::register(lua, idx, fct);
     }
 }
