@@ -86,7 +86,7 @@ macro_rules! register_awesome {
 #[macro_export]
 macro_rules! register_button {
     ($callback_impl:ident, $global_name:ident) => {{
-        use ::awesome_wayland::Button;
+        use ::awesome_wayland::callbacks::Button;
         let lua_reg = {
             register_lua!($global_name,  [
                 // Class methods

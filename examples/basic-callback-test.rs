@@ -12,6 +12,7 @@ use libc::c_int;
 
 use awesome_wayland::{Lua, LuaErr, Awesome};
 use awesome_wayland::callbacks;
+use awesome_wayland::callbacks::*;
 use std::path::PathBuf;
 use std::default::Default;
 
