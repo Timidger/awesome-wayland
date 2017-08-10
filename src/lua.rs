@@ -299,4 +299,13 @@ pub mod luaA {
             luaL_setfuncs(lua, l.as_ptr(), 0);
         }
     }
+
+    pub unsafe fn typeerror(lua: *mut lua_State, narg: libc::c_int,
+                            tname: *const libc::c_char) -> libc::c_int {
+        let msg = lua_pushfstring(lua, c_str!("%s expected, got %s"),
+                                  tname, lua_typename(lua, narg));
+        luaL_traceback(lua, lua, ::std::ptr::null_mut(), 2);
+        lua_concat(lua, 2);
+        return luaL_argerror(lua, narg, msg);
+    }
 }
