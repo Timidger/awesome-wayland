@@ -465,3 +465,18 @@ macro_rules! properties {
         $($(fn $inner(&self, lua: Lua) -> c_int;)*),*
     };
 }
+
+
+use lua_sys::*;
+use libc;
+pub unsafe fn luaL_opt(lua: *mut lua_State, f: fn(*mut lua_State, libc::c_int) -> lua_Integer,
+                n: libc::c_int, d: lua_Integer)
+                -> lua_Integer {
+    let lua_t = lua_type(lua, n);
+    let is_none_or_nil = lua_t == LUA_TNIL as i32 || lua_t == LUA_TNONE;
+    if is_none_or_nil {
+        d
+    } else {
+        f(lua, n)
+    }
+}

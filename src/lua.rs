@@ -397,6 +397,6 @@ pub mod luaA {
 
     pub unsafe fn optinteger(lua: *mut lua_State, narg: libc::c_int, def: lua_Integer)
                              -> lua_Integer {
-        return luaL_opt(lua, luaA::checkinteger, narg, def);
+        return ::utils::luaL_opt(lua, |lua, n| luaA::checkinteger(lua, n) as lua_Integer, narg, def);
     }
 }
