@@ -504,8 +504,16 @@ pub mod luaA {
         return luaA::register(lua, idx, fct);
     }
 
+    pub unsafe fn default_index(lua: *mut lua_State) -> libc::c_int {
+        return luaA::class_index_miss_property(lua, ::std::ptr::null_mut());
+    }
+
+    pub unsafe fn default_newindex(lua: *mut lua_State) -> libc::c_int {
+        return luaA::class_newindex_miss_property(lua, ::std::ptr::null_mut());
+    }
+
     pub unsafe fn class_index_miss_property(lua: *mut lua_State,
-                                            object: *mut Object)
+                                            object: *mut libc::c_void)
                                             -> libc::c_int {
         use object::{global_signals, signal_object_emit};
         let GLOBALSIGNALS = global_signals.lock().unwrap();
@@ -513,9 +521,9 @@ pub mod luaA {
         return 0
     }
 
-    pub unsafe fn luaA_class_newindex_miss_property(lua: *mut lua_State,
-                                                    object: *mut Object)
-                                                    -> libc::c_int {
+    pub unsafe fn class_newindex_miss_property(lua: *mut lua_State,
+                                               object: *mut libc::c_void)
+                                               -> libc::c_int {
         use object::{global_signals, signal_object_emit};
         let GLOBALSIGNALS = global_signals.lock().unwrap();
         signal_object_emit(lua, &*GLOBALSIGNALS, "debug::newindex::miss", 3);
