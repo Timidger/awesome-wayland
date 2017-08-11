@@ -271,8 +271,9 @@ impl DerefMut for Lua {
 ///
 /// They should not be used directly and instead you should use [Lua](./Lua).
 pub mod luaA {
-    // TODO move this somewhere else...
+    type config_callback = Fn(*const libc::c_char) -> bool;
 
+    // TODO move this somewhere else...
     #[repr(C)]
     pub struct area_t {
         x: i16,
@@ -501,4 +502,187 @@ pub mod luaA {
         luaA::checkfunction(lua, idx);
         return luaA::register(lua, idx, fct);
     }
+
+    pub unsafe fn init(searchpath: &[&str]) {
+        let awesome_lib = [
+            luaL_Reg {
+                name: c_str!("awesome"),
+                func: Some(luaA::quit)
+            },
+            luaL_Reg {
+                name: c_str!("exec"),
+                func: Some(luaA::exec)
+            },
+            luaL_Reg {
+                name: c_str!("spawn"),
+                func: Some(luaA::spawn)
+            },
+            luaL_Reg {
+                name: c_str!("restart"),
+                func: Some(luaA::restart)
+            },
+            luaL_Reg {
+                name: c_str!("connect_signal"),
+                func: Some(luaA::awesome_connect_signal)
+            },
+            luaL_Reg {
+                name: c_str!("disconnect_signal"),
+                func: Some(luaA::awesome_disconnect_signal)
+            },
+            luaL_Reg {
+                name: c_str!("emit_signal"),
+                func: Some(luaA::awesome_emit_signal)
+            },
+            luaL_Reg {
+                name: c_str!("systray"),
+                func: Some(luaA::systray)
+            },
+            luaL_Reg {
+                name: c_str!("load_image"),
+                func: Some(luaA::load_image)
+            },
+            luaL_Reg {
+                name: c_str!("set_preferred_icon_size"),
+                func: Some(luaA::set_preferred_icon_size)
+            },
+            luaL_Reg {
+                name: c_str!("register_xproperty"),
+                func: Some(luaA::register_xproperty)
+            },
+            luaL_Reg {
+                name: c_str!("set_xproperty"),
+                func: Some(luaA::set_xproperty)
+            },
+            luaL_Reg {
+                name: c_str!("get_xproperty"),
+                func: Some(luaA::get_xproperty)
+            },
+            luaL_Reg {
+                name: c_str!("__index"),
+                func: Some(luaA::awesome_index)
+            },
+            luaL_Reg {
+                name: c_str!("__newindex"),
+                func: Some(luaA::default_newindex)
+            },
+            luaL_Reg {
+                name: c_str!("xkb_set_layout_group"),
+                func: Some(luaA::xkb_set_layout_group)
+            },
+            luaL_Reg {
+                name: c_str!("xkb_get_layout_group"),
+                func: Some(luaA::xkb_get_layout_group),
+            },
+            luaL_Reg {
+                name: c_str!("xkb_get_group_names"),
+                func: Some(luaA::xkb_get_group_names)
+            },
+            luaL_Reg {
+                name: c_str!("xrdb_get_value"),
+                func: Some(luaA::xrdb_get_value)
+            },
+            luaL_Reg {
+                name: c_str!("kill"),
+                func: Some(luaA::kill)
+            },
+            luaL_Reg {
+                name: c_str!("sync"),
+                func: Some(luaA::sync)
+            }
+        ];
+
+        // TODO store this somewhere, preferebly in a global to be like the lib.
+        let lua = luaL_newstate();
+
+        /* Set panic function */
+        lua_atpanic(l, luaA::panic);
+
+        // TODO ANOTHER global?!
+        /* Set error handling function */
+        lualib_dofunction_on_error = luaA::dofunction_on_error;
+
+        luaL_openlibs(lua);
+
+        luaA::fixup(lua);
+
+        luaA::object_setup(lua);
+
+        /* Export awesome lib */
+        luaA::openlib(lua, c_str!("awesome"), &awesome_lib, &awesome_lib);
+        setup_awesome_signals(lua);
+
+        /* Export root lib */
+        /* luaA::registerlib() leaves the table on the stack */
+        luaA::registerlib(lua, c_str!("root"), awesome_root_lib);
+        lua_pop(lua, 1);
+
+        /* Export keygrabber lib */
+        luaA::registerlib(lua, c_str!("keygrabber"), awesome_keygrabber_lib);
+        lua_pop(lua, 1);
+
+        /* Export mousegrabber lib */
+        luaA::registerlib(lua, c_str!("mousegrabber"), awesome_mousegrabber_lib);
+        lua_pop(lua, 1);
+
+        /* Export mouse */
+        luaA::openlib(lua, c_str!("mouse"), awesome_mouse_methods, awesome_mouse_meta);
+
+        /* Export screen */
+        screen_class_setup(lua);
+
+        /* Export button */
+        button_class_setup(lua);
+
+        /* Export tag */
+        tag_class_setup(lua);
+
+        /* Export window */
+        window_class_setup(lua);
+
+        /* Export drawable */
+        drawable_class_setup(lua);
+
+        /* Export drawin */
+        drawin_class_setup(lua);
+
+        /* Export client */
+        client_class_setup(lua);
+
+        /* Export keys */
+        key_class_setup(lua);
+
+        /* add Lua search path */
+        lua_getglobal(lua, c_str!("package"));
+        if lua_type(lua, 1) != LUA_TTABLE as i32 {
+            eprintln!("package is not a table");
+            return;
+        }
+        lua_getfield(lua, 1, c_str!("path"));
+        add_to_search_path(lua, searchpath, true);
+        lua_setfield(lua, 1, c_str!("path")); /* package.path = "concatenated string" */
+
+        lua_getfield(lua, 1, c_str!("cpath"));
+        add_to_search_path(lua, searchpath, false);
+        lua_setfield(lua, 1, c_str!("cpath")); /* package.cpath = "concatenated string" */
+
+        lua_pop(lua, 1); /* pop "package" */
+    }
+
+    /*
+    void luaA_init(xdgHandle *, string_array_t *);
+    const char *luaA_find_config(xdgHandle *, const char *, luaA_config_callback *);
+    bool luaA_parserc(xdgHandle *, const char *);
+
+    /** Global signals */
+    signal_array_t global_signals;
+
+    int luaA_class_index_miss_property(lua_State *, lua_object_t *);
+    int luaA_class_newindex_miss_property(lua_State *, lua_object_t *);
+    int luaA_default_index(lua_State *);
+    int luaA_default_newindex(lua_State *);
+    void luaA_emit_startup(void);
+
+    void luaA_systray_invalidate(void);
+    */
+
 }
