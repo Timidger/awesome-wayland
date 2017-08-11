@@ -21,7 +21,7 @@ pub type CheckerF = fn(&mut Object) -> bool;
 /// The super class to all [Class](Class)es.
 ///
 /// These can be downcasted into a concrete class type if necessary.
-trait Object: ::std::any::Any {
+pub trait Object: ::std::any::Any {
     fn signals(&self) -> Vec<Signal>;
 }
 

@@ -15,6 +15,7 @@ extern crate lua_sys;
 #[macro_use] mod utils;
 mod lua;
 
+pub mod object;
 pub mod awesome;
 pub mod callbacks;
 pub use lua::*;

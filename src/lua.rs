@@ -7,6 +7,7 @@ use std::ffi::{CString, CStr};
 use std::ops::{Deref, DerefMut};
 use std::collections::HashMap;
 
+
 const ALREADY_DEFINED: i32 = 0;
 
 /// Wrapper around the raw Lua context. When necessary, the raw Lua context can
@@ -271,6 +272,7 @@ impl DerefMut for Lua {
 ///
 /// They should not be used directly and instead you should use [Lua](./Lua).
 pub mod luaA {
+    use ::object::class::Object;
     // TODO move this somewhere else...
 
     #[repr(C)]
@@ -501,4 +503,72 @@ pub mod luaA {
         luaA::checkfunction(lua, idx);
         return luaA::register(lua, idx, fct);
     }
+
+    pub unsafe fn class_index_miss_property(lua: *mut lua_State,
+                                            object: *mut Object)
+                                            -> libc::c_int {
+        use object::{global_signals, signal_object_emit};
+        let GLOBALSIGNALS = global_signals.lock().unwrap();
+        signal_object_emit(lua, &*GLOBALSIGNALS, "debug::index::miss", 2);
+        return 0
+    }
+
+    pub unsafe fn luaA_class_newindex_miss_property(lua: *mut lua_State,
+                                                    object: *mut Object)
+                                                    -> libc::c_int {
+        use object::{global_signals, signal_object_emit};
+        let GLOBALSIGNALS = global_signals.lock().unwrap();
+        signal_object_emit(lua, &*GLOBALSIGNALS, "debug::newindex::miss", 3);
+        return 0
+    }
+
+    pub unsafe fn object_push(lua: *mut lua_State, ptr: *mut libc::c_void) -> libc::c_int {
+        luaA::object_registry_push(lua);
+        lua_pushlightuserdata(lua, ptr);
+        lua_rawget(lua, -2);
+        ::lua::lua_remove(lua, -2);
+        return 1;
+    }
+
+    pub unsafe fn object_registry_push(lua: *mut lua_State) {
+        lua_pushstring(lua, c_str!("awesome.object.registry"));
+        lua_rawget(lua, LUA_REGISTRYINDEX);
+    }
+
+    pub unsafe fn dofunction(lua: *mut lua_State, nargs: libc::c_int,
+                             nret: libc::c_int) -> libc::c_int {
+        /* Move function before arguments */
+        ::lua::lua_insert(lua, - nargs - 1);
+        /* Push error handling function */
+        lua_pushcfunction(lua, Some(luaA::dofunction_error));
+        /* Move error handling function before args and functions */
+        ::lua::lua_insert(lua, - nargs -2);
+        let error_func_pos = lua_gettop(lua) - nargs -1;
+        if lua_pcallk(lua, nargs, nret, - nargs -2, 0, None) != 0{
+            eprintln!("{:?}", lua_tostring(lua, -1));
+            /* Remove error function and error string */
+            lua_pop(lua, 2);
+            return 0;
+        }
+        /* Remove error function */
+        ::lua::lua_remove(lua, error_func_pos);
+        return 1;
+    }
+
+    pub unsafe extern fn dofunction_error(lua: *mut lua_State) -> libc::c_int {
+        // TODO
+        //if lualib_dofunction_on_error {
+        //    return  lualib_dofunction_on_error(lua);
+        //}
+        return 0;
+    }
+}
+
+pub unsafe fn lua_remove(lua: *mut lua_State, idx: ::libc::c_int) {
+    lua_rotate(lua, idx, -1);
+    lua_pop(lua, 1);
+}
+
+pub unsafe fn lua_insert(lua: *mut lua_State, idx: ::libc::c_int) {
+    lua_rotate(lua, idx, 1);
 }
