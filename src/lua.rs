@@ -1243,6 +1243,31 @@ pub mod luaA {
         lua_setmetatable(lua, -2);
         return 1;
     }
+
+    pub unsafe fn class_connect_signal(lua: *mut lua_State, class: *mut Class,
+                                       name: *const libc::c_char,
+                                       func: lua_CFunction) {
+        lua_pushcfunction(lua, func);
+        luaA::class_connect_signal_from_stack(lua, class, name, -1);
+    }
+
+    pub unsafe fn object_ref(lua: *mut lua_State, oud: libc::c_int)
+                             -> *mut libc::c_void {
+        luaA::object_registry_push(lua);
+        let p = luaA::object_incref(lua, -1, if oud < 0 {oud - 1} else {oud});
+        lua_pop(lua, 1);
+        return p as _;
+    }
+
+    pub unsafe fn class_connect_signal_from_stack(lua: *mut lua_State,
+                                                  class: *mut Class,
+                                                  name: *const libc::c_char,
+                                                  ud: libc::c_int) {
+        luaA::checkfunction(lua, ud);
+        ::object::signal::signal_connect(&mut (*class).signals,
+                                         name,
+                                         luaA::object_ref(lua, ud))
+    }
 }
 
 use libc;
