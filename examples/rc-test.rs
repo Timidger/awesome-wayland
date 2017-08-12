@@ -26,14 +26,14 @@ pub struct DummyStruct;
 /// Save on a LOT of typing
 macro_rules! default_impl{
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&mut self, lua: Lua) -> c_int {0})*),*
+        $($(fn $inner(&self, lua: Lua) -> c_int {0})*),*
     };
 }
 
 
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
-    fn awesome_xrdb_get_value(&mut self, lua: Lua) -> c_int {
+    fn awesome_xrdb_get_value(&self, lua: Lua) -> c_int {
         // TODO Add method to get args (in this case resource class and name)
         lua.return_string("");
         unsafe {
@@ -42,7 +42,7 @@ impl callbacks::Awesome for DummyStruct {
         1
     }
 
-    fn awesome___index(&mut self, lua: Lua) -> c_int {
+    fn awesome___index(&self, lua: Lua) -> c_int {
         // TODO Check if has a metatable, and if so use that.
         let buf = lua.get_index_arg_string().unwrap();
 
@@ -111,7 +111,7 @@ impl callbacks::Button for DummyStruct {
 impl callbacks::Beautiful for DummyStruct {}
 
 impl callbacks::Client for DummyStruct {
-    fn client_get(&mut self, lua: Lua) -> c_int {
+    fn client_get(&self, lua: Lua) -> c_int {
         lua.return_table::<()>(HashMap::new());
         1
     }
