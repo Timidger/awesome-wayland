@@ -287,6 +287,7 @@ pub mod luaA {
 
     // Global button class definitions
     pub static mut button_class: *mut Class = 0 as *mut _;
+    const NULL: *mut libc::c_void = 0 as _;
 
     pub struct ClassWrapper(*mut Class);
 
@@ -768,8 +769,8 @@ pub mod luaA {
         (*class).collector = Some(collector);
         (*class).allocator = allocator;
         (*class).name = CString::from_raw(name as _).into_string().unwrap();
-        (*class).index_miss_prop = index_miss_property;
-        (*class).newindex_miss_prop = newindex_miss_property;
+        (*class).index_miss_prop = Some(index_miss_property);
+        (*class).newindex_miss_prop = Some(newindex_miss_property);
         (*class).checker = Some(checker);
         (*class).parent = parent;
         (*class).tostring = None;
@@ -1094,6 +1095,117 @@ pub mod luaA {
         let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
         luaA::object_emit_signal(lua, 1, check_string, lua_gettop(lua) -2);
         0
+    }
+
+    pub unsafe extern fn class_index(lua: *mut lua_State) -> libc::c_int {
+        /* Try to use metatable first. */
+        if luaA::usemetatable(lua, 1, 2) != 0 {
+            return 1;
+        }
+        let class = luaA::class_get(lua, 1);
+
+        /* Is this the special 'valid' property? This is the only property
+        * accessible for invalid objects and thus needs special handling. */
+        let attr = luaL_checklstring(lua, 2, NULL as _);
+        let attr_str = CStr::from_ptr(attr).to_str().unwrap();
+        if attr_str == "valid" {
+            let p = luaA::toudata(lua, 1, class) as _;
+            if let Some(checker) = (*class).checker {
+                let res = {
+                    if p != NULL as _ {
+                        if checker(p) {1} else {0}
+                    } else {
+                        0
+                    }
+                };
+                lua_pushboolean(lua, res);
+            } else {
+                lua_pushboolean(lua, if p != NULL as _ {1} else {0});
+            }
+            return 1;
+        }
+
+        let prop = luaA::class_property_get(lua, class, 2);
+
+        /* Is this the special 'data' property? This is available on all objects and
+        * thus not implemented as a lua_class_property_t.
+        */
+        if attr_str == "data" {
+            luaA::checkudata(lua, 1, class);
+            luaA::getuservalue(lua, 1);
+            lua_getfield(lua, -1, c_str!("data"));
+            return 1;
+        }
+
+        /* Property does exist and has an index callback */
+        if ! prop.is_null() {
+            if let Some(indexF) = (*prop).index {
+                indexF(lua, luaA::checkudata(lua, 1, class) as _);
+            }
+        } else {
+            if (*class).index_miss_handler != LUA_REFNIL {
+                return luaA::class_call_handler(lua, (*class).index_miss_handler);
+            }
+            if let Some(propF) = (*class).index_miss_prop {
+                return propF(lua, luaA::checkudata(lua, 1, class) as _);
+            }
+        }
+
+        return 0;
+    }
+
+    pub unsafe fn usemetatable(lua: *mut lua_State, idxobj: libc::c_int,
+                               idxfield: libc::c_int) -> libc::c_int {
+        let mut class = luaA::class_get(lua, idxobj);
+        while ! class.is_null() {
+            /* Push the class */
+            lua_pushlightuserdata(lua, class as _);
+            /* Get its metatable from registry */
+            lua_rawget(lua, LUA_REGISTRYINDEX);
+            /* Push the field */
+            lua_pushvalue(lua, idxfield);
+            /* Get the field in the metatable */
+            lua_rawget(lua, -2);
+            /* Do we have a field like that? */
+            let is_nil = lua_type(lua, -1) == LUA_TNIL as i32;
+            if !is_nil {
+                /* Yes, so remove the metatable and return it! */
+                ::lua::lua_remove(lua, -2);
+                return 1;
+            }
+            /* No, so remove the metatable and its value */
+            lua_pop(lua, 2);
+            class = (*class).parent;
+        }
+
+        return 0;
+    }
+
+    pub unsafe fn class_call_handler(lua: *mut lua_State, handler: libc::c_int)
+                                     -> libc::c_int {
+        /* This is based on luaA_dofunction, but allows multiple return values */
+        assert!(handler != LUA_REFNIL);
+
+        let nargs = lua_gettop(lua);
+
+        /* Push error handling function and move it before args */
+        lua_pushcfunction(lua, Some(luaA::dofunction_error));
+        ::lua::lua_insert(lua, - nargs - 1);
+        let error_func_pos = 1;
+
+        /* push function and move it before args */
+        lua_rawgeti(lua, LUA_REGISTRYINDEX, handler as _);
+        ::lua::lua_insert(lua, - nargs - 1);
+
+        if lua_pcallk(lua, nargs, LUA_MULTRET, error_func_pos, 0, None) != 0 {
+            eprintln!("{:?}", lua_tostring(lua, -1));
+            /* Remove error function and error string */
+            lua_pop(lua, 2);
+            return 0;
+        }
+        /* Remove error function */
+        ::lua::lua_remove(lua, error_func_pos);
+        return lua_gettop(lua);
     }
 }
 

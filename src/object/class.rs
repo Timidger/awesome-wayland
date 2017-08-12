@@ -46,8 +46,8 @@ pub struct Class {
     /// Method that is called when the object is garbage collected.
     pub collector: Option<CollectorF>,
     pub properties: Vec<Property>,
-    pub index_miss_prop: PropF,
-    pub newindex_miss_prop: PropF,
+    pub index_miss_prop: Option<PropF>,
+    pub newindex_miss_prop: Option<PropF>,
     pub checker: Option<CheckerF>,
     pub instances: i32,
     pub tostring: Option<PropF>,
@@ -75,8 +75,4 @@ pub unsafe fn class_get<'a>(l: *mut lua_State, idx: c_int) -> Option<&'a Class> 
         return Some(class);
     }
     None
-}
-
-pub unsafe fn usemetatable(l: *mut lua_State, idxobj: c_int, idxfield: c_int) -> bool {
-    unimplemented!()
 }
