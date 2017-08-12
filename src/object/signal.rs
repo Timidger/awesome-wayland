@@ -79,3 +79,18 @@ pub unsafe fn signal_connect(signals: &mut Vec<Signal>, name: *const libc::c_cha
     };
     signals.push(sig);
 }
+
+pub unsafe fn signal_disconnect(signals: &mut Vec<Signal>,
+                                name: *const libc::c_char,
+                                ptr: *mut libc::c_void) -> libc::c_int {
+    let mut hasher = DefaultHasher::new();
+    hasher.write(CStr::from_ptr(name).to_str().unwrap().as_bytes());
+    let id = hasher.finish();
+    if let Some(index) = signals.iter().position(|sig| sig.id == id) {
+        // TODO This might be a memory leak
+        signals.remove(index);
+        1
+    } else {
+        0
+    }
+}
