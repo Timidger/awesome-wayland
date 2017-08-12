@@ -732,10 +732,10 @@ pub mod luaA {
                               name: *const libc::c_char,
                               parent: *mut Class,
                               allocator: AllocatorF,
-                              collector: CollectorF,
-                              checker: CheckerF,
-                              index_miss_property: PropF,
-                              newindex_miss_property: PropF,
+                              collector: Option<CollectorF>,
+                              checker: Option<CheckerF>,
+                              index_miss_property: Option<PropF>,
+                              newindex_miss_property: Option<PropF>,
                               methods: &[luaL_Reg],
                               meta: &[luaL_Reg]) {
         /* Create the object metatable */
@@ -766,12 +766,12 @@ pub mod luaA {
         lua_setmetatable(lua, -2);        /* set self as metatable              2 */
         lua_pop(lua, 2);
 
-        (*class).collector = Some(collector);
+        (*class).collector = collector;
         (*class).allocator = allocator;
         (*class).name = CString::from_raw(name as _).into_string().unwrap();
-        (*class).index_miss_prop = Some(index_miss_property);
-        (*class).newindex_miss_prop = Some(newindex_miss_property);
-        (*class).checker = Some(checker);
+        (*class).index_miss_prop = index_miss_property;
+        (*class).newindex_miss_prop = newindex_miss_property;
+        (*class).checker = checker;
         (*class).parent = parent;
         (*class).tostring = None;
         (*class).instances = 0;
