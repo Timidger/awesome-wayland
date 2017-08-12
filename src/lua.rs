@@ -767,7 +767,7 @@ pub mod luaA {
         (*class).name = CString::from_raw(name as _).into_string().unwrap();
         (*class).index_miss_prop = index_miss_property;
         (*class).newindex_miss_prop = newindex_miss_property;
-        (*class).checker = checker;
+        (*class).checker = Some(checker);
         (*class).parent = parent;
         (*class).tostring = None;
         (*class).instances = 0;
@@ -775,6 +775,79 @@ pub mod luaA {
         (*class).newindex_miss_handler = LUA_REFNIL;
 
         luaA::classes.lock().unwrap().push_back(ClassWrapper::new(class));
+    }
+
+    pub unsafe extern fn object_tostring(lua: *mut lua_State) -> libc::c_int {
+        let lua_class = luaA::class_get(lua, 1);
+        let object = luaA::checkudata(lua, 1, lua_class);
+        let mut offset = 0;
+        let mut cur_class = lua_class;
+        while ! cur_class.is_null() {
+            if offset != 0 {
+                lua_pushstring(lua, c_str!("/"));
+                ::lua::lua_insert(lua, -{offset += 1; offset});
+            }
+            let name = CString::new((*cur_class).name.clone()).unwrap();
+            lua_pushstring(lua, name.as_ptr());
+            ::lua::lua_insert(lua, -{offset += 1; offset});
+
+            if let Some(tostring) = (*cur_class).tostring {
+                let (mut k, mut n) = (0, 0);
+                lua_pushstring(lua, c_str!("("));
+                n = 2 + tostring(lua, object as _);
+                lua_pushstring(lua, c_str!(")"));
+
+                for k in 0..n {
+                    ::lua::lua_insert(lua, -offset);
+                }
+                offset += n;
+            }
+
+            cur_class = (*cur_class).parent;
+        }
+        lua_pushfstring(lua, c_str!(": %p"), object);
+
+        lua_concat(lua, offset + 1);
+        1
+    }
+
+    pub unsafe fn toudata(lua: *mut lua_State, ud: libc::c_int,
+                          class: *mut Class) -> *mut libc::c_void {
+        let p = lua_touserdata(lua, ud);
+        /* does it have a metatable? */
+        if ! p.is_null() && lua_getmetatable(lua, ud) != 0 {
+            /* Get the lua_class_t that matches this metatable */
+            lua_rawget(lua, LUA_REGISTRYINDEX);
+            let mut metatable_class = lua_touserdata(lua, -1) as *mut Class;
+
+            /* remove lightuserdata (lua_class pointer) */
+            lua_pop(lua, 1);
+
+            /* Now, check that the class given in argument is the same as the
+             * metatable's object, or one of its parent (inheritance) */
+            while ! metatable_class.is_null() {
+                if metatable_class == class {
+                    return p;
+                }
+                metatable_class = (*metatable_class).parent;
+            }
+        }
+        return ::std::ptr::null_mut();
+
+    }
+
+    pub unsafe fn checkudata(lua: *mut lua_State, ud: libc::c_int,
+                             class: *mut Class) -> *mut libc::c_void {
+        let p = luaA::toudata(lua, ud, class);
+        if p.is_null() {
+            let name = CString::new((*class).name.clone()).unwrap();
+            luaA::typeerror(lua, ud, name.as_ptr());
+        } else if let Some(checker) = (*class).checker {
+            checker(p as _);
+            luaL_error(lua, c_str!("invalid object"));
+        }
+        return p;
+
     }
 }
 

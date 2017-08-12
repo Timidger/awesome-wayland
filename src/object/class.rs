@@ -48,7 +48,7 @@ pub struct Class {
     pub properties: Vec<Property>,
     pub index_miss_prop: PropF,
     pub newindex_miss_prop: PropF,
-    pub checker: CheckerF,
+    pub checker: Option<CheckerF>,
     pub instances: i32,
     pub tostring: Option<PropF>,
     // TODO Do we need these? These are pointers to methods on the stack
