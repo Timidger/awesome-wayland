@@ -286,7 +286,9 @@ pub mod luaA {
     use super::luaA;
 
     // Global button class definitions
-    pub static mut button_class: *mut Class = 0 as *mut _;
+    lazy_static! {
+        static ref button_class: Mutex<Class> = Mutex::new(Class::default());
+    }
     const NULL: *mut libc::c_void = 0 as _;
 
     pub struct ClassWrapper(*mut Class);
@@ -632,7 +634,7 @@ pub mod luaA {
         luaA::checktable(lua, 2);
 
         /* Create a new object */
-        let mut object_ptr = ((*class).allocator)(lua);
+        let mut object_ptr = ((*class).allocator.unwrap())(lua);
 
         /* Push the first key before iterating */
         lua_pushnil(lua);
@@ -767,7 +769,7 @@ pub mod luaA {
         lua_pop(lua, 2);
 
         (*class).collector = collector;
-        (*class).allocator = allocator;
+        (*class).allocator = Some(allocator);
         (*class).name = CString::from_raw(name as _).into_string().unwrap();
         (*class).index_miss_prop = index_miss_property;
         (*class).newindex_miss_prop = newindex_miss_property;

@@ -42,7 +42,7 @@ pub struct Class {
     pub signals: Vec<Signal>,
     pub parent: *mut Class,
     /// Method that allocates new objects for the class.
-    pub allocator: AllocatorF,
+    pub allocator: Option<AllocatorF>,
     /// Method that is called when the object is garbage collected.
     pub collector: Option<CollectorF>,
     pub properties: Vec<Property>,
@@ -55,6 +55,29 @@ pub struct Class {
     // And are wildly unsafe. See how they are used first
     pub index_miss_handler: c_int,
     pub newindex_miss_handler: c_int
+}
+
+unsafe impl Send for Class {}
+unsafe impl Sync for Class {}
+
+impl Default for Class {
+    fn default() -> Self {
+        Class {
+            name: String::new(),
+            signals: Vec::new(),
+            parent: 0 as _,
+            allocator: None,
+            collector: None,
+            properties: Vec::new(),
+            index_miss_prop: None,
+            newindex_miss_prop: None,
+            checker: None,
+            instances: 0,
+            tostring: None,
+            index_miss_handler: 0,
+            newindex_miss_handler: 0
+        }
+    }
 }
 
 /// Get an object lua_class
