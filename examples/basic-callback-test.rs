@@ -19,11 +19,18 @@ use std::default::Default;
 // Contains no state, just here so we can register the libs.
 pub struct DummyStruct;
 
+static mut COUNT: i32 = 0;
+
 /// Defines the the default impl of a callback to do nothing.
 /// Save on a LOT of typing
 macro_rules! default_impl{
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&self, lua: Lua) -> c_int {0})*),*
+        $($(fn $inner(&self, lua: Lua) -> c_int {
+            unsafe {
+                COUNT += 1;
+            }
+            0
+        })*),*
     };
 }
 
@@ -272,5 +279,8 @@ fn main() {
             ::std::process::exit(1);
         },
         err => err.unwrap()
+    }
+    unsafe {
+        assert_eq!(COUNT, 116);
     }
 }
