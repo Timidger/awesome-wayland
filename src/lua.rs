@@ -1097,6 +1097,34 @@ pub mod luaA {
         0
     }
 
+    pub unsafe extern fn class_newindex(lua: *mut lua_State) -> libc::c_int {
+        /* Try to use metatable first. */
+        if luaA::usemetatable(lua, 1, 2) != 0 {
+            return 1;
+        }
+
+        let class = luaA::class_get(lua, 1);
+
+        let prop = luaA::class_property_get(lua, class, 2);
+
+        /* Property does exist and has a newindex callback */
+        if !prop.is_null()
+        {
+            if let Some(newindex) = (*prop).new_index {
+                return newindex(lua, luaA::checkudata(lua, 1, class) as _);
+            }
+        } else {
+            if (*class).newindex_miss_handler != LUA_REFNIL {
+                return luaA::class_call_handler(lua, (*class).newindex_miss_handler);
+            }
+            if let Some(propF) = (*class).newindex_miss_prop {
+                return propF(lua, luaA::checkudata(lua, 1, class) as _);
+            }
+        }
+
+        return 0;
+    }
+
     pub unsafe extern fn class_index(lua: *mut lua_State) -> libc::c_int {
         /* Try to use metatable first. */
         if luaA::usemetatable(lua, 1, 2) != 0 {
