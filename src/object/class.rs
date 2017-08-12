@@ -4,10 +4,10 @@
 
 use libc::{self, c_int, c_uint};
 use lua_sys::*;
-use std::rc::Rc;
 use ::lua::Lua;
 use super::signal::Signal;
 use super::property::Property;
+use std::cell::UnsafeCell;
 
 /// Method that allocates new objects for the class.
 pub type AllocatorF = fn(*mut lua_State) -> *mut Object;
@@ -32,31 +32,29 @@ struct array_t<T> {
     size: libc::c_int
 }
 
-#[repr(C)]
 pub struct Object {
-    signals: array_t<Signal>
+    pub signals: Vec<Signal>
 }
 
 /// A Lua object that is a class.
 pub struct Class {
-    name: String,
-    signals: Vec<Signal>,
-    // TODO Putting it an Rc, cause idk what else to put it in
-    pub parent: Rc<Option<Class>>,
+    pub name: String,
+    pub signals: Vec<Signal>,
+    pub parent: *mut Class,
     /// Method that allocates new objects for the class.
     pub allocator: AllocatorF,
     /// Method that is called when the object is garbage collected.
-    collector: CollectorF,
+    pub collector: Option<CollectorF>,
     pub properties: Vec<Property>,
-    index_miss_prop: PropF,
-    newindex_miss_prop: PropF,
-    checker: CheckerF,
-    instances: i32,
-    tostring: PropF,
+    pub index_miss_prop: PropF,
+    pub newindex_miss_prop: PropF,
+    pub checker: CheckerF,
+    pub instances: i32,
+    pub tostring: Option<PropF>,
     // TODO Do we need these? These are pointers to methods on the stack
     // And are wildly unsafe. See how they are used first
-    index_miss_handler: c_int,
-    newindex_miss_handler: c_int
+    pub index_miss_handler: c_int,
+    pub newindex_miss_handler: c_int
 }
 
 /// Get an object lua_class

@@ -275,13 +275,32 @@ pub mod luaA {
     use lua_sys::*;
     use libc;
     use std::ffi::CString;
+    use std::collections::LinkedList;
+    use std::sync::Mutex;
     use ::object::Property;
-    use ::object::class::{Class, Object};
+    use ::object::class::{Class, Object, AllocatorF, CheckerF, CollectorF,
+                          PropF};
     // This weird line is so that I can use luaA namespace explicitly here.
     use super::luaA;
 
     // Global button class definitions
     static mut button_class: *mut Class = 0 as *mut _;
+
+    pub struct ClassWrapper(*mut Class);
+
+    unsafe impl Send for ClassWrapper {}
+    unsafe impl Sync for ClassWrapper {}
+
+    impl ClassWrapper {
+        pub fn new(class: *mut Class) -> Self {
+            ClassWrapper(class)
+        }
+    }
+
+    lazy_static! {
+        pub static ref classes: Mutex<LinkedList<ClassWrapper>> =
+            Mutex::new(LinkedList::new());
+    }
 
     // TODO move this somewhere else...
     #[repr(C)]
@@ -598,10 +617,7 @@ pub mod luaA {
                 .find(|prop| prop.name == attr) {
                 return prop as *mut _;
             }
-            cur_class = match *(*class).parent {
-                Some(ref parent) => parent as *const _ as *mut _,
-                None => ::std::ptr::null_mut()
-            };
+            cur_class = (*cur_class).parent;
         }
         return ::std::ptr::null_mut();
     }
@@ -633,6 +649,118 @@ pub mod luaA {
             lua_pop(lua, 1);
         }
         0
+    }
+
+    pub unsafe fn class_get(lua: *mut lua_State, idx: libc::c_int)
+                            -> *mut Class {
+        let ty = lua_type(lua, idx);
+        if ty == LUA_TUSERDATA as i32 && lua_getmetatable(lua, idx) != 0 {
+            /* Use the metatable has key to get the class from registry */
+            lua_rawget(lua, LUA_REGISTRYINDEX);
+            let class = lua_touserdata(lua, -1) as *mut Class;
+            lua_pop(lua, 1);
+            return class;
+        }
+        return ::std::ptr::null_mut();
+    }
+
+    pub unsafe extern fn class_newindex_invalid(lua: *mut lua_State)
+                                                -> libc::c_int {
+        return luaL_error(lua, c_str!("attempt to index an object that \
+                                       was already garbage collected"))
+    }
+
+    pub unsafe extern fn class_index_invalid(lua: *mut lua_State)
+                                             -> libc::c_int {
+        let attr = CString::from_raw(
+            luaL_checklstring(lua, 2, ::std::ptr::null_mut()) as _)
+            .into_string().unwrap();
+        if &*attr == "valid" {
+            lua_pushboolean(lua, 0);
+            return 1;
+        }
+        return luaA::class_newindex_invalid(lua);
+
+    }
+
+    pub unsafe extern fn class_gc(lua: *mut lua_State) -> libc::c_int {
+        let item = lua_touserdata(lua, 1) as *mut Object;
+        (*item).signals.clear();
+        /* Get the object class */
+        let class = luaA::class_get(lua, 1);
+        (*class).instances -= 1;
+        /* Call the collector function of the class, and all its parent classes */
+        let mut cur_class = class;
+        while ! cur_class.is_null() {
+            if let Some(collector) = (*class).collector {
+                collector(item);
+            }
+            cur_class = (*cur_class).parent
+        }
+        /* Unset its metatable so that e.g. luaA_toudata() will no longer accept
+         * this object. This is needed since other __gc methods can still use this.
+         * We also make sure that `item.valid == false`.
+         */
+        lua_newtable(lua);
+        lua_pushcfunction(lua, Some(luaA::class_index_invalid));
+        lua_setfield(lua, -2, c_str!("__index"));
+        lua_pushcfunction(lua, Some(luaA::class_newindex_invalid));
+        lua_setfield(lua, -2, c_str!("__newindex"));
+        lua_setmetatable(lua, 1);
+        return 0;
+    }
+
+    pub unsafe fn class_setup(lua: *mut lua_State, class: *mut Class,
+                              name: *const libc::c_char,
+                              parent: *mut Class,
+                              allocator: AllocatorF,
+                              collector: CollectorF,
+                              checker: CheckerF,
+                              index_miss_property: PropF,
+                              newindex_miss_property: PropF,
+                              methods: &[luaL_Reg],
+                              meta: &[luaL_Reg]) {
+        /* Create the object metatable */
+        lua_newtable(lua);
+        /* Register it with class pointer as key in the registry
+        * class-pointer -> metatable */
+        lua_pushlightuserdata(lua, class as _);
+        /* Duplicate the object metatable */
+        lua_pushvalue(lua, -2);
+        lua_rawset(lua, LUA_REGISTRYINDEX);
+        /* Now register class pointer with metatable as key in the registry
+        * metatable -> class-pointer */
+        lua_pushvalue(lua, -1);
+        lua_pushlightuserdata(lua, class as _);
+        lua_rawset(lua, LUA_REGISTRYINDEX);
+
+        /* Duplicate objects metatable */
+        lua_pushvalue(lua, -1);
+        /* Set garbage collector in the metatable */
+        lua_pushcfunction(lua, Some(luaA::class_gc));
+        lua_setfield(lua, -2, c_str!("__gc"));
+
+        lua_setfield(lua, -2, c_str!("__index")); /* metatable.__index = metatable 1 */
+
+        luaA::registerlib(lua, ::std::ptr::null_mut(), meta);                 /* 1 */
+        luaA::registerlib(lua, name, methods);                                /* 2 */
+        lua_pushvalue(lua, -1);           /* dup self as metatable              3 */
+        lua_setmetatable(lua, -2);        /* set self as metatable              2 */
+        lua_pop(lua, 2);
+
+        (*class).collector = Some(collector);
+        (*class).allocator = allocator;
+        (*class).name = CString::from_raw(name as _).into_string().unwrap();
+        (*class).index_miss_prop = index_miss_property;
+        (*class).newindex_miss_prop = newindex_miss_property;
+        (*class).checker = checker;
+        (*class).parent = parent;
+        (*class).tostring = None;
+        (*class).instances = 0;
+        (*class).index_miss_handler = LUA_REFNIL;
+        (*class).newindex_miss_handler = LUA_REFNIL;
+
+        luaA::classes.lock().unwrap().push_back(ClassWrapper::new(class));
     }
 
     pub unsafe fn button_new(lua: *mut lua_State) -> libc::c_int {
