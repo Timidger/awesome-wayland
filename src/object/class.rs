@@ -26,15 +26,15 @@ pub type CheckerF = fn(*mut Object) -> bool;
 }*/
 
 #[repr(C)]
-struct signal_array_t {
-    tab: *mut Signal,
+struct array_t<T> {
+    tab: *mut T,
     len: libc::c_int,
     size: libc::c_int
 }
 
 #[repr(C)]
 pub struct Object {
-    signals: signal_array_t
+    signals: array_t<Signal>
 }
 
 /// A Lua object that is a class.
