@@ -274,8 +274,10 @@ impl DerefMut for Lua {
 pub mod luaA {
     use lua_sys::*;
     use libc;
-    use std::ffi::CString;
+    use std::ffi::{CString, CStr};
     use std::collections::LinkedList;
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::Hasher;
     use std::sync::Mutex;
     use ::object::Property;
     use ::object::class::{Class, Object, AllocatorF, CheckerF, CollectorF,
@@ -310,6 +312,7 @@ pub mod luaA {
         width: u16,
         height: u16
     }
+
     pub unsafe fn openlib(lua: *mut lua_State, name: *const libc::c_char,
                           methods: &[luaL_Reg], meta: &[luaL_Reg]) {
         luaL_newmetatable(lua, name);
@@ -1008,6 +1011,90 @@ pub mod luaA {
                                                         3);
         0
     }
+
+    pub unsafe extern fn absindex(lua: *mut lua_State, ud: libc::c_int)
+                                  -> libc::c_int {
+        if ud > 0 || ud <= LUA_REGISTRYINDEX {
+            ud
+        } else {
+            lua_gettop(lua) + ud + 1
+        }
+    }
+
+    pub unsafe fn object_push_item(lua: *mut lua_State, ud: libc::c_int,
+                                   pointer: *mut libc::c_void) -> libc::c_int {
+        /* Get env table of the object */
+        luaA::getuservalue(lua, ud);
+        /* Push key */
+        lua_pushlightuserdata(lua, pointer);
+        /* Get env.pointer */
+        lua_rawget(lua, -2);
+        /* Remove env table */
+        ::lua::lua_remove(lua, -2);
+        return 1;
+    }
+
+    pub unsafe fn class_emit_signal(lua: *mut lua_State, class: *mut Class,
+                                    name: *const libc::c_char,
+                                    nargs: libc::c_int) {
+        let name = CStr::from_ptr(name).to_str().unwrap();
+        ::object::signal::signal_object_emit(lua, &(*class).signals, name, nargs)
+    }
+
+    pub unsafe extern fn object_emit_signal(lua: *mut lua_State,
+                                            oud: libc::c_int,
+                                            name: *const libc::c_char,
+                                            nargs: libc::c_int) {
+        let oud_abs = luaA::absindex(lua, oud);
+        let lua_class = luaA::class_get(lua, oud);
+        let obj = luaA::toudata(lua, oud, lua_class) as *mut Class;
+        if obj.is_null() {
+            eprintln!("Trying to emit signal '{:?}' on non object", name);
+            return;
+        } else if let Some(checker) = (*lua_class).checker {
+            checker(obj as _);
+            eprintln!("Trying to emit signal '{:?}' on invalid object", name);
+            return;
+        }
+        let mut hasher = DefaultHasher::new();
+        hasher.write(CStr::from_ptr(name).to_str().unwrap().as_bytes());
+        let id = hasher.finish();
+        if let Some(sig) = (*obj).signals.iter_mut().find(|sig| sig.id == id) {
+            let nbfunc = sig.sigfuncs.len() as i32;
+            luaL_checkstack(lua, nbfunc + nargs + 2, c_str!("too much signal"));
+            /* Push all functions and then execute, because this list can change
+            * while executing funcs. */
+            for sigfunc in &mut sig.sigfuncs {
+                luaA::object_push_item(lua, oud_abs, sigfunc as *mut _ as *mut _);
+            }
+
+            for i in 0..nbfunc {
+                /* push object */
+                lua_pushvalue(lua, oud_abs);
+                /* push all args */
+                for j in 0..nargs {
+                    lua_pushvalue(lua, - nargs - nbfunc - 1 + i);
+                }
+                /* push first function */
+                lua_pushvalue(lua, - nargs - nbfunc - 1 + i);
+                /* remove this first function */
+                ::lua::lua_remove(lua, - nargs - nbfunc - 2 + i);
+                luaA::dofunction(lua, nargs + 1, 0);
+            }
+        }
+
+        /* Then emit signal on the class */
+        lua_pushvalue(lua, oud);
+        ::lua::lua_insert(lua, - nargs - 1);
+        luaA::class_emit_signal(lua, luaA::class_get(lua, - nargs - 1), name, nargs + 1);
+    }
+
+        pub unsafe extern fn object_emit_signal_simple(lua: *mut lua_State)
+                                                    -> libc::c_int {
+            let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
+            luaA::object_emit_signal(lua, 1, check_string, lua_gettop(lua) -2);
+            0
+        }
 }
 
 pub unsafe fn lua_remove(lua: *mut lua_State, idx: ::libc::c_int) {
