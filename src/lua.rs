@@ -287,7 +287,7 @@ pub mod luaA {
 
     // Global button class definitions
     lazy_static! {
-        static ref button_class: Mutex<Class> = Mutex::new(Class::default());
+        pub static ref button_class: Mutex<Class> = Mutex::new(Class::default());
     }
     const NULL: *mut libc::c_void = 0 as _;
 

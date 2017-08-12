@@ -492,8 +492,9 @@ macro_rules! LUA_OBJECT_FUNCS {
             let p = lua_newuserdata(lua, type_size) as *mut $type;
             // TODO memzero this
             //*p = ::std::mem::transmute(0);
-            (*$lua_class).instances += 1;
-            luaA::settype(lua, $lua_class);
+            let mut class = $lua_class.lock().unwrap();
+            class.instances += 1;
+            luaA::settype(lua, &mut *class);
             lua_newtable(lua);
             lua_newtable(lua);
             lua_setmetatable(lua, -2);
@@ -501,7 +502,7 @@ macro_rules! LUA_OBJECT_FUNCS {
             lua_setfield(lua, -2, c_str!("data"));
             luaA::setuservalue(lua, -2);
             lua_pushvalue(lua, -1);
-            luaA::class_emit_signal(lua, $lua_class,
+            luaA::class_emit_signal(lua, &mut *class,
                                     c_str!("new"), 1);
             return p as _;
         }
