@@ -1255,28 +1255,3 @@ pub unsafe fn lua_remove(lua: *mut lua_State, idx: libc::c_int) {
 pub unsafe fn lua_insert(lua: *mut lua_State, idx: libc::c_int) {
     lua_rotate(lua, idx, 1);
 }
-
-
-// TODO generalize. See TODO comments
-pub unsafe extern fn button_class_add_signal(lua: *mut lua_State) -> libc::c_int {
-    use ::object::class::Class;
-    // TODO Is there ever a point where this _isn't_ a Class pointer?
-    let p = lua_newuserdata(lua, ::std::mem::size_of::<Class>()) as *mut Class;
-    // TODO memzero this
-    //*p = ::std::mem::transmute(0);
-    // TODO Gotta make it a macro and pass this identifier in
-    (*luaA::button_class).instances += 1;
-    // TODO Gotta make it a macro and pass this identifier in
-    luaA::settype(lua, luaA::button_class);
-    lua_newtable(lua);
-    lua_newtable(lua);
-    lua_setmetatable(lua, -2);
-    lua_newtable(lua);
-    lua_setfield(lua, -2, c_str!("data"));
-    luaA::setuservalue(lua, -2);
-    lua_pushvalue(lua, -1);
-    // TODO Gotta make it a macro and pass this identifier in
-    luaA::class_emit_signal(lua, luaA::button_class,
-                           c_str!("new"), 1);
-    return p as _;
-}

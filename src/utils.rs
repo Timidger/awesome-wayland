@@ -480,3 +480,30 @@ pub unsafe fn luaL_opt(lua: *mut lua_State, f: fn(*mut lua_State, libc::c_int) -
         f(lua, n)
     }
 }
+
+/// Defines the lua object functions. This is functionally equiv to
+/// the C macro LUA_OBJECT_FUNCS from the awesome lib.
+#[macro_export]
+macro_rules! LUA_OBJECT_FUNCS {
+    ($lua_class:path, $type:ty, $new_name:ident) => {
+        use ::lua_sys::*;
+        pub unsafe extern fn $new_name(lua: *mut lua_State) -> libc::c_int {
+            let type_size =::std::mem::size_of::<$type>();
+            let p = lua_newuserdata(lua, type_size) as *mut $type;
+            // TODO memzero this
+            //*p = ::std::mem::transmute(0);
+            (*$lua_class).instances += 1;
+            luaA::settype(lua, $lua_class);
+            lua_newtable(lua);
+            lua_newtable(lua);
+            lua_setmetatable(lua, -2);
+            lua_newtable(lua);
+            lua_setfield(lua, -2, c_str!("data"));
+            luaA::setuservalue(lua, -2);
+            lua_pushvalue(lua, -1);
+            luaA::class_emit_signal(lua, $lua_class,
+                                    c_str!("new"), 1);
+            return p as _;
+        }
+    }
+}
