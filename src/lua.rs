@@ -1089,12 +1089,12 @@ pub mod luaA {
         luaA::class_emit_signal(lua, luaA::class_get(lua, - nargs - 1), name, nargs + 1);
     }
 
-        pub unsafe extern fn object_emit_signal_simple(lua: *mut lua_State)
-                                                    -> libc::c_int {
-            let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
-            luaA::object_emit_signal(lua, 1, check_string, lua_gettop(lua) -2);
-            0
-        }
+    pub unsafe extern fn object_emit_signal_simple(lua: *mut lua_State)
+                                                -> libc::c_int {
+        let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
+        luaA::object_emit_signal(lua, 1, check_string, lua_gettop(lua) -2);
+        0
+    }
 }
 
 pub unsafe fn lua_remove(lua: *mut lua_State, idx: ::libc::c_int) {
