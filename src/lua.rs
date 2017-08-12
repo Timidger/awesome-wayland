@@ -710,6 +710,20 @@ pub mod luaA {
         return 0;
     }
 
+    pub unsafe fn object_setup(lua: *mut lua_State) {
+        /* Push identification string */
+        lua_pushstring(lua, c_str!("awesome.object.registry"));
+        /* Create an empty table */
+        lua_newtable(lua);
+        /* Create an empty metatable */
+        lua_newtable(lua);
+        /* Set this empty table as the registry metatable.
+         * It's used to store the number of reference on stored objects. */
+        lua_setmetatable(lua, -2);
+        /* Register table inside registry */
+        lua_rawset(lua, LUA_REGISTRYINDEX);
+    }
+
     pub unsafe fn class_setup(lua: *mut lua_State, class: *mut Class,
                               name: *const libc::c_char,
                               parent: *mut Class,
