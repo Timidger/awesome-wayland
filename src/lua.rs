@@ -943,71 +943,71 @@ pub mod luaA {
         }
     }
 
-        pub unsafe fn object_ref_item(lua: *mut lua_State, ud: libc::c_int,
-                                    mut iud: libc::c_int) -> *mut libc::c_void {
-            /* Get the env table from the object */
-            luaA::getuservalue(lua, ud);
-            iud = if iud < 0 { iud - 1} else { iud };
-            let pointer = luaA::object_incref(lua, -1, iud);
-            /* Remove env table */
-            lua_pop(lua, 1);
-            return pointer;
-        }
+    pub unsafe fn object_ref_item(lua: *mut lua_State, ud: libc::c_int,
+                                mut iud: libc::c_int) -> *mut libc::c_void {
+        /* Get the env table from the object */
+        luaA::getuservalue(lua, ud);
+        iud = if iud < 0 { iud - 1} else { iud };
+        let pointer = luaA::object_incref(lua, -1, iud);
+        /* Remove env table */
+        lua_pop(lua, 1);
+        return pointer;
+    }
 
-        pub unsafe fn object_unref_item(lua: *mut lua_State, ud: libc::c_int,
-                                        ptr: *mut libc::c_void) {
-            /* Get the env table from the object */
-            luaA::getuservalue(lua, ud);
-            /* Decrement */
-            luaA::object_decref(lua, -1, ptr);
-            /* Remove env table */
-            lua_pop(lua, 1);
-        }
+    pub unsafe fn object_unref_item(lua: *mut lua_State, ud: libc::c_int,
+                                    ptr: *mut libc::c_void) {
+        /* Get the env table from the object */
+        luaA::getuservalue(lua, ud);
+        /* Decrement */
+        luaA::object_decref(lua, -1, ptr);
+        /* Remove env table */
+        lua_pop(lua, 1);
+    }
 
-        pub unsafe fn object_connect_signal_simple_from_stack(lua: *mut lua_State,
-                                                            oud: libc::c_int,
-                                                            name: *mut libc::c_char,
-                                                            ud: libc::c_int) {
-            luaA::checkfunction(lua, ud);
-            let obj = lua_touserdata(lua, oud) as *mut Object;
-            let ref_item = luaA::object_ref_item(lua, oud, ud);
-            ::object::signal::signal_connect(&mut (*obj).signals, name, ref_item);
-        }
+    pub unsafe fn object_connect_signal_simple_from_stack(lua: *mut lua_State,
+                                                        oud: libc::c_int,
+                                                        name: *mut libc::c_char,
+                                                        ud: libc::c_int) {
+        luaA::checkfunction(lua, ud);
+        let obj = lua_touserdata(lua, oud) as *mut Object;
+        let ref_item = luaA::object_ref_item(lua, oud, ud);
+        ::object::signal::signal_connect(&mut (*obj).signals, name, ref_item);
+    }
 
-        pub unsafe extern fn object_connect_signal_simple(lua: *mut lua_State)
-                                                        -> libc::c_int {
-            let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
-            luaA::object_connect_signal_simple_from_stack(lua,
-                                                        1,
+    pub unsafe extern fn object_connect_signal_simple(lua: *mut lua_State)
+                                                    -> libc::c_int {
+        let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
+        luaA::object_connect_signal_simple_from_stack(lua,
+                                                    1,
+                                                    check_string as _,
+                                                    3);
+        0
+    }
+
+    pub unsafe fn object_disconnect_signal_simple_from_stack(
+        lua: *mut lua_State, oud: libc::c_int, name: *const libc::c_char,
+        ud: libc::c_int) {
+
+        luaA::checkfunction(lua, ud);
+        let obj = lua_touserdata(lua, oud) as *mut Object;
+        let ptr = lua_topointer(lua, ud) as _;
+        if ::object::signal::signal_disconnect(&mut (*obj).signals,
+                                                name,
+                                                ptr) != 0 {
+            luaA::object_unref_item(lua, oud, ptr);
+        }
+        ::lua::lua_remove(lua, ud);
+
+    }
+
+    pub unsafe extern fn object_disconnect_signal_simple(
+        lua: *mut lua_State) -> libc::c_int {
+        let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
+        luaA::object_disconnect_signal_simple_from_stack(lua, 1,
                                                         check_string as _,
                                                         3);
-            0
-        }
-
-        pub unsafe fn object_disconnect_signal_simple_from_stack(
-            lua: *mut lua_State, oud: libc::c_int, name: *const libc::c_char,
-            ud: libc::c_int) {
-
-            luaA::checkfunction(lua, ud);
-            let obj = lua_touserdata(lua, oud) as *mut Object;
-            let ptr = lua_topointer(lua, ud) as _;
-            if ::object::signal::signal_disconnect(&mut (*obj).signals,
-                                                   name,
-                                                   ptr) != 0 {
-                luaA::object_unref_item(lua, oud, ptr);
-            }
-            ::lua::lua_remove(lua, ud);
-
-        }
-
-        pub unsafe extern fn object_disconnect_signal_simple(
-            lua: *mut lua_State) -> libc::c_int {
-            let check_string = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
-            luaA::object_disconnect_signal_simple_from_stack(lua, 1,
-                                                            check_string as _,
-                                                            3);
-            0
-        }
+        0
+    }
 }
 
 pub unsafe fn lua_remove(lua: *mut lua_State, idx: ::libc::c_int) {
