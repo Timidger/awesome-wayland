@@ -284,7 +284,7 @@ pub mod luaA {
     use super::luaA;
 
     // Global button class definitions
-    static mut button_class: *mut Class = 0 as *mut _;
+    pub static mut button_class: *mut Class = 0 as *mut _;
 
     pub struct ClassWrapper(*mut Class);
 
@@ -537,7 +537,7 @@ pub mod luaA {
     }
 
     pub unsafe fn class_index_miss_property(lua: *mut lua_State,
-                                            object: *mut libc::c_void)
+                                            object: *mut Object)
                                             -> libc::c_int {
         use object::{global_signals, signal_object_emit};
         let GLOBALSIGNALS = global_signals.lock().unwrap();
@@ -546,7 +546,7 @@ pub mod luaA {
     }
 
     pub unsafe fn class_newindex_miss_property(lua: *mut lua_State,
-                                               object: *mut libc::c_void)
+                                               object: *mut Object)
                                                -> libc::c_int {
         use object::{global_signals, signal_object_emit};
         let GLOBALSIGNALS = global_signals.lock().unwrap();
@@ -775,10 +775,6 @@ pub mod luaA {
         (*class).newindex_miss_handler = LUA_REFNIL;
 
         luaA::classes.lock().unwrap().push_back(ClassWrapper::new(class));
-    }
-
-    pub unsafe fn button_new(lua: *mut lua_State) -> libc::c_int {
-        luaA::class_new(lua, button_class)
     }
 }
 

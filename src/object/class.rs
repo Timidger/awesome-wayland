@@ -10,13 +10,13 @@ use super::property::Property;
 use std::cell::UnsafeCell;
 
 /// Method that allocates new objects for the class.
-pub type AllocatorF = fn(*mut lua_State) -> *mut Object;
+pub type AllocatorF = unsafe extern fn(*mut lua_State) -> *mut Object;
 /// Method that is called when the object is garbage collected.
-pub type CollectorF = fn(*mut Object);
+pub type CollectorF = unsafe fn(*mut Object);
 /// Function to call when accessing a property in some way.
-pub type PropF = fn(*mut lua_State, *mut Object) -> c_int;
+pub type PropF = unsafe fn(*mut lua_State, *mut Object) -> c_int;
 /// Function to call to check if an object is valid.
-pub type CheckerF = fn(*mut Object) -> bool;
+pub type CheckerF = unsafe fn(*mut Object) -> bool;
 
 /// The super class to all [Class](Class)es.
 ///
