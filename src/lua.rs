@@ -272,9 +272,18 @@ impl DerefMut for Lua {
 ///
 /// They should not be used directly and instead you should use [Lua](./Lua).
 pub mod luaA {
-    use ::object::class::Object;
-    // TODO move this somewhere else...
+    use lua_sys::*;
+    use libc;
+    use std::ffi::CString;
+    use ::object::Property;
+    use ::object::class::{Class, Object};
+    // This weird line is so that I can use luaA namespace explicitly here.
+    use super::luaA;
 
+    // Global button class definitions
+    static mut button_class: *mut Class = 0 as *mut _;
+
+    // TODO move this somewhere else...
     #[repr(C)]
     pub struct area_t {
         x: i16,
@@ -282,10 +291,6 @@ pub mod luaA {
         width: u16,
         height: u16
     }
-    // This weird line is so that I can use luaA namespace explicitly here.
-    use super::luaA;
-    use lua_sys::*;
-    use libc;
     pub unsafe fn openlib(lua: *mut lua_State, name: *const libc::c_char,
                           methods: &[luaL_Reg], meta: &[luaL_Reg]) {
         luaL_newmetatable(lua, name);
@@ -569,6 +574,69 @@ pub mod luaA {
         //    return  lualib_dofunction_on_error(lua);
         //}
         return 0;
+    }
+
+    pub unsafe fn checktable(lua: *mut lua_State, idx: libc::c_int) {
+        let istable = lua_type(lua, idx) == LUA_TTABLE as i32;
+        if istable {
+            luaA::typeerror(lua, idx, c_str!("table"));
+        }
+    }
+
+    pub unsafe fn class_property_get(lua: *mut lua_State, class: *mut Class,
+                                     fieldidx: libc::c_int) -> *mut Property {
+        /* Lookup the property using token */
+        let attr = CString::from_raw(
+            luaL_checklstring(lua, fieldidx,
+                              ::std::ptr::null_mut()) as *mut _)
+            .into_string().expect("Could not convert CString to string");
+
+        /* Look for the property in the class; if not found, go in the parent class. */
+        let mut cur_class = class;
+        while ! class.is_null() {
+            if let Some(prop) = (*class).properties.iter_mut()
+                .find(|prop| prop.name == attr) {
+                return prop as *mut _;
+            }
+            cur_class = match *(*class).parent {
+                Some(ref parent) => parent as *const _ as *mut _,
+                None => ::std::ptr::null_mut()
+            };
+        }
+        return ::std::ptr::null_mut();
+    }
+
+    pub unsafe fn class_new(lua: *mut lua_State, class: *mut Class)
+                            -> libc::c_int {
+        /* Check we have a table that should contains some properties */
+        luaA::checktable(lua, 2);
+
+        /* Create a new object */
+        let mut object_ptr = ((*class).allocator)(lua);
+
+        /* Push the first key before iterating */
+        lua_pushnil(lua);
+        /* Iterate over the property keys */
+        while lua_next(lua, 2) != 0 {
+            /* Check that the key is a string.
+             * We cannot call tostring blindly or Lua will convert a key that is a
+             * number TO A STRING, confusing lua_next() */
+            let is_string = lua_type(lua, -2) == LUA_TSTRING as i32;
+            if is_string {
+                let prop = luaA::class_property_get(lua, class, -2);
+
+                if !prop.is_null() && (*prop).new.is_some() {
+                    (*prop).new.unwrap()(lua, object_ptr);
+                }
+            }
+            /* Remove value */
+            lua_pop(lua, 1);
+        }
+        0
+    }
+
+    pub unsafe fn button_new(lua: *mut lua_State) -> libc::c_int {
+        luaA::class_new(lua, button_class)
     }
 }
 

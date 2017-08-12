@@ -2,7 +2,7 @@
 
 // TODO double check I need these c_* types
 
-use libc::{c_int, c_uint};
+use libc::{self, c_int, c_uint};
 use lua_sys::*;
 use std::rc::Rc;
 use ::lua::Lua;
@@ -10,19 +10,31 @@ use super::signal::Signal;
 use super::property::Property;
 
 /// Method that allocates new objects for the class.
-pub type AllocatorF = fn(&mut Lua) -> Object;
+pub type AllocatorF = fn(*mut lua_State) -> *mut Object;
 /// Method that is called when the object is garbage collected.
-pub type CollectorF = fn(&mut Object);
+pub type CollectorF = fn(*mut Object);
 /// Function to call when accessing a property in some way.
-pub type PropF = fn(&mut Lua, &mut Object) -> c_int;
+pub type PropF = fn(*mut lua_State, *mut Object) -> c_int;
 /// Function to call to check if an object is valid.
-pub type CheckerF = fn(&mut Object) -> bool;
+pub type CheckerF = fn(*mut Object) -> bool;
 
 /// The super class to all [Class](Class)es.
 ///
 /// These can be downcasted into a concrete class type if necessary.
-pub trait Object: ::std::any::Any {
+/*pub trait Object: ::std::any::Any {
     fn signals(&self) -> Vec<Signal>;
+}*/
+
+#[repr(C)]
+struct signal_array_t {
+    tab: *mut Signal,
+    len: libc::c_int,
+    size: libc::c_int
+}
+
+#[repr(C)]
+pub struct Object {
+    signals: signal_array_t
 }
 
 /// A Lua object that is a class.
@@ -30,12 +42,12 @@ pub struct Class {
     name: String,
     signals: Vec<Signal>,
     // TODO Putting it an Rc, cause idk what else to put it in
-    parent: Rc<Class>,
+    pub parent: Rc<Option<Class>>,
     /// Method that allocates new objects for the class.
-    allocator: AllocatorF,
+    pub allocator: AllocatorF,
     /// Method that is called when the object is garbage collected.
     collector: CollectorF,
-    properties: Vec<Property>,
+    pub properties: Vec<Property>,
     index_miss_prop: PropF,
     newindex_miss_prop: PropF,
     checker: CheckerF,
