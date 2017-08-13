@@ -627,6 +627,14 @@ pub mod luaA {
         return ::std::ptr::null_mut();
     }
 
+    pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
+        let class_ptr = {
+            let mut class = button_class.lock().unwrap();
+            (&mut *class) as *mut _
+        };
+        luaA::class_new(lua, class_ptr)
+    }
+
     pub unsafe fn class_new(lua: *mut lua_State, class: *mut Class)
                             -> libc::c_int {
         /* Check we have a table that should contains some properties */
