@@ -628,6 +628,14 @@ pub mod luaA {
     }
 
     pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
+        // TODO FIXME
+        // THIS IS A RACE CONDITION WAITING TO HAPPEN
+        // We don't lock the object properly because it will be locked again
+        // whenever `luaA::class_new` calls the allocator, because the allocator
+        // needs to grab the class instance and bump the instance number.
+        //
+        // We can fix this later with a sweet little Cell, but for now it's
+        // not possible :(.
         let class_ptr = {
             let mut class = button_class.lock().unwrap();
             (&mut *class) as *mut _
