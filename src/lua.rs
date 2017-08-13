@@ -653,7 +653,7 @@ pub mod luaA {
             /* Remove value */
             lua_pop(lua, 1);
         }
-        0
+        1
     }
 
     pub unsafe fn class_get(lua: *mut lua_State, idx: libc::c_int)
