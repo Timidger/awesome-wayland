@@ -608,7 +608,7 @@ pub mod luaA {
         }
     }
 
-    pub unsafe fn class_property_get(lua: *mut lua_State, class: *mut Class,
+    pub unsafe fn class_property_get(lua: *mut lua_State, mut class: *mut Class,
                                      fieldidx: libc::c_int) -> *mut Property {
         /* Lookup the property using token */
         let attr = CString::from_raw(
@@ -617,13 +617,12 @@ pub mod luaA {
             .into_string().expect("Could not convert CString to string");
 
         /* Look for the property in the class; if not found, go in the parent class. */
-        let mut cur_class = class;
         while ! class.is_null() {
             if let Some(prop) = (*class).properties.iter_mut()
                 .find(|prop| prop.name == attr) {
                 return prop as *mut _;
             }
-            cur_class = (*cur_class).parent;
+            class = (*class).parent;
         }
         return ::std::ptr::null_mut();
     }
