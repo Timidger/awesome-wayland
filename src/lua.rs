@@ -1261,6 +1261,25 @@ pub mod luaA {
         return p as _;
     }
 
+    pub unsafe fn object_unref(lua: *mut lua_State, ptr: *mut libc::c_void) {
+        luaA::object_registry_push(lua);
+        luaA::object_decref(lua, -1, ptr as _);
+        lua_pop(lua, 1);
+    }
+
+    pub unsafe fn class_disconnect_signal_from_stack(lua: *mut lua_State,
+                                                     class: *mut Class,
+                                                     name: *const libc::c_char,
+                                                     ud: libc::c_int) {
+        use ::object::signal::signal_disconnect;
+        luaA::checkfunction(lua, ud);
+        let ptr = lua_topointer(lua, ud);
+        if (signal_disconnect(&mut (*class).signals, name, ptr as _)) != 0 {
+            luaA::object_unref(lua, ptr as _);
+        }
+        ::lua::lua_remove(lua, ud);
+    }
+
     pub unsafe fn class_connect_signal_from_stack(lua: *mut lua_State,
                                                   class: *mut Class,
                                                   name: *const libc::c_char,
