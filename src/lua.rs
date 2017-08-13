@@ -603,7 +603,7 @@ pub mod luaA {
 
     pub unsafe fn checktable(lua: *mut lua_State, idx: libc::c_int) {
         let istable = lua_type(lua, idx) == LUA_TTABLE as i32;
-        if istable {
+        if !istable {
             luaA::typeerror(lua, idx, c_str!("table"));
         }
     }
