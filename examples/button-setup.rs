@@ -50,7 +50,8 @@ pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
     lua_pushvalue(lua, -1);
     luaA::class_emit_signal(lua, &mut *class,
                             c_str!("new"), 1);
-    return p as _;
+    //return p;
+    2
 }
 
 unsafe fn button_class_setup(lua: *mut lua_State) {
