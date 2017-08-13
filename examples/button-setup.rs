@@ -15,20 +15,46 @@ use awesome_wayland::callbacks::*;
 use std::path::PathBuf;
 use std::default::Default;
 
-// TODO Do the same for LUA_CLASS_FUNCS
-// can't do a macro easily though, might just write them by hand...
-
 fn main() {
+    let LUA = Lua::new();
     unsafe {
-        let lua = luaL_newstate();
-        luaL_openlibs(lua);
+        let lua = LUA.0;
         luaA::object_setup(lua);
         button_class_setup(lua);
     }
+    match LUA.load_and_run(PathBuf::from("examples/button-setup.lua")) {
+        Ok(_) => {},
+        Err(LuaErr::Load(_)) => {
+            println!("Could not find lua file! Please run this from the root \
+                      of the project directory");
+            ::std::process::exit(1);
+        },
+        err => err.unwrap()
+    }
+}
+
+pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
+    let type_size =::std::mem::size_of::<Class>();
+    let p = lua_newuserdata(lua, type_size) as *mut Class;
+    // TODO memzero this
+    //*p = ::std::mem::transmute(0);
+    let mut class = luaA::button_class.lock().unwrap();
+    class.instances += 1;
+    luaA::settype(lua, &mut *class);
+    lua_newtable(lua);
+    lua_newtable(lua);
+    lua_setmetatable(lua, -2);
+    lua_newtable(lua);
+    lua_setfield(lua, -2, c_str!("data"));
+    luaA::setuservalue(lua, -2);
+    lua_pushvalue(lua, -1);
+    luaA::class_emit_signal(lua, &mut *class,
+                            c_str!("new"), 1);
+    return p as _;
 }
 
 unsafe fn button_class_setup(lua: *mut lua_State) {
-    LUA_OBJECT_FUNCS!(luaA::button_class, Class, button_class_add_signal);
+    //LUA_OBJECT_FUNCS!(luaA::button_class, Class, button_new);
     let button_methods = [
         luaL_Reg {
             name: c_str!("add_signal"),
@@ -107,25 +133,31 @@ unsafe fn button_class_setup(lua: *mut lua_State) {
                       Some(luaA::class_newindex_miss_property),
                       &button_methods, &button_meta)
 }
-
-pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
-    let mut button_class = luaA::button_class.lock().unwrap();
-    luaA::class_new(lua, &mut *button_class)
+unsafe extern fn button_class_add_signal(lua: *mut lua_State)
+                                         -> libc::c_int {
+    eprintln!("signal usage with add_signal()");
+    0
 }
 
 pub unsafe extern fn button_class_connect_signal(lua: *mut lua_State)
                                                  -> libc::c_int {
-    eprintln!("signal usage with add_signal()");
-    0
-}
-pub unsafe extern fn button_class_disconnect_signal(lua: *mut lua_State)
-                                                    -> libc::c_int {
+
     let check_string = luaL_checklstring(lua, 1, ::std::ptr::null_mut());
     let mut button_class = luaA::button_class.lock().unwrap();
     luaA::class_connect_signal_from_stack(lua,
                                           &mut *button_class,
                                           check_string,
                                           2);
+    0
+}
+pub unsafe extern fn button_class_disconnect_signal(lua: *mut lua_State)
+                                                    -> libc::c_int {
+    let check_string = luaL_checklstring(lua, 1, ::std::ptr::null_mut());
+    let mut button_class = luaA::button_class.lock().unwrap();
+    luaA::class_disconnect_signal_from_stack(lua,
+                                             &mut *button_class,
+                                             check_string,
+                                             2);
     0
 }
 pub unsafe extern fn button_class_emit_signal(lua: *mut lua_State)
