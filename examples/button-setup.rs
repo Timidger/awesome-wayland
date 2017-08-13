@@ -9,7 +9,7 @@ use lua_sys::*;
 use libc::c_int;
 
 use awesome_wayland::{Lua, luaA, LuaErr, Awesome};
-use awesome_wayland::object::class::{Class};
+use awesome_wayland::object::class::{Class, Object};
 use awesome_wayland::callbacks;
 use awesome_wayland::callbacks::*;
 use std::path::PathBuf;
@@ -33,7 +33,7 @@ fn main() {
     }
 }
 
-pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
+pub unsafe extern fn button_new(lua: *mut lua_State) -> *mut Object {
     let type_size =::std::mem::size_of::<Class>();
     let p = lua_newuserdata(lua, type_size) as *mut Class;
     // TODO memzero this
@@ -50,8 +50,7 @@ pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
     lua_pushvalue(lua, -1);
     luaA::class_emit_signal(lua, &mut *class,
                             c_str!("new"), 1);
-    //return p;
-    2
+    return p as _;
 }
 
 unsafe fn button_class_setup(lua: *mut lua_State) {
@@ -87,7 +86,7 @@ unsafe fn button_class_setup(lua: *mut lua_State) {
         },
         luaL_Reg {
             name: c_str!("__call"),
-            func: Some(button_new)
+            func: Some(luaA::button_new)
         },
         luaL_Reg {
             name: ::std::ptr::null_mut(),
@@ -126,7 +125,6 @@ unsafe fn button_class_setup(lua: *mut lua_State) {
         }
     ];
     let NULL = ::std::ptr::null_mut();
-    let button_new = *(&button_new as *const _ as *const unsafe extern "C" fn(*mut lua_sys::lua_State) -> *mut awesome_wayland::object::class::Object);
     let mut button_class = luaA::button_class.lock().unwrap();
     luaA::class_setup(lua, &mut *button_class, c_str!("button"), NULL as _,
                       button_new, None, None,

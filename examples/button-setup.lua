@@ -31,7 +31,9 @@ print("Setting button constructor...")
 --end)
 
 print("Calling button constructor...")
-print(dump(button({a = 5})))
+a_button = button({a = 5})
+print(dump(a_button))
+assert(type(a_button) == "userdata")
 
 
 --assert(button ~= nil)
