@@ -33,28 +33,8 @@ fn main() {
     }
 }
 
-pub unsafe extern fn button_new(lua: *mut lua_State) -> *mut Object {
-    let type_size =::std::mem::size_of::<Class>();
-    let p = lua_newuserdata(lua, type_size) as *mut Class;
-    // TODO memzero this
-    //*p = ::std::mem::transmute(0);
-    let mut class = luaA::button_class.lock().unwrap();
-    class.instances += 1;
-    luaA::settype(lua, &mut *class);
-    lua_newtable(lua);
-    lua_newtable(lua);
-    lua_setmetatable(lua, -2);
-    lua_newtable(lua);
-    lua_setfield(lua, -2, c_str!("data"));
-    luaA::setuservalue(lua, -2);
-    lua_pushvalue(lua, -1);
-    luaA::class_emit_signal(lua, &mut *class,
-                            c_str!("new"), 1);
-    return p as _;
-}
-
 unsafe fn button_class_setup(lua: *mut lua_State) {
-    //LUA_OBJECT_FUNCS!(luaA::button_class, Class, button_new);
+    LUA_OBJECT_FUNCS!(luaA::button_class, Class, button_new);
     let button_methods = [
         luaL_Reg {
             name: c_str!("add_signal"),
