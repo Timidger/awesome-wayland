@@ -31,7 +31,6 @@ pub trait Button {
             luaA::object_disconnect_signal_simple(lua.0)
         }
     }
-    // TODO Give these the default impls
     /* LUA_CLASS_META methods */
     fn button___index_meta(&self, lua: Lua) -> c_int {
         unsafe {

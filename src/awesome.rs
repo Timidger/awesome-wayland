@@ -4,7 +4,7 @@
 //! each of the methods used by the Awesome Lua libraries.
 use std::path::PathBuf;
 use super::lua::{Lua, LuaErr};
-use super::callbacks::{self, Beautiful, Button, Client, Drawin, Keygrabber,
+use super::callbacks::{self, Button, Client, Drawin, Keygrabber,
                        Mousegrabber, Mouse, Root, Screen, Tag};
 
 /// Represents the bindings to the awesome libraries.
@@ -12,10 +12,8 @@ use super::callbacks::{self, Beautiful, Button, Client, Drawin, Keygrabber,
 /// necessary callbacks defined that are called from Lua.
 #[derive(Debug)]
 pub struct Awesome<T>
-    where T: callbacks::Awesome + Beautiful + Button +
-    Client + Drawin + Keygrabber +
-    Mousegrabber + Mouse + Root +
-    Screen + Tag {
+    where T: callbacks::Awesome + Button + Client + Drawin + Keygrabber +
+    Mousegrabber + Mouse + Root + Screen + Tag {
     /// The user-provided data that is operated on by the callbacks.
     pub callbacks: T
 }
@@ -32,8 +30,8 @@ impl From<LuaErr> for AwesomeErr {
 }
 
 impl<T> Awesome<T>
-    where T: Default + callbacks::Awesome + Beautiful + Button + Client +
-    Drawin + Keygrabber + Mousegrabber + Mouse + Root + Screen + Tag {
+    where T: Default + callbacks::Awesome + Button + Client + Drawin + Keygrabber +
+    Mousegrabber + Mouse + Root + Screen + Tag {
 
     /// Constructs a new `Awesome` instance, and calls the default constructor
     /// for the `T` value.
@@ -46,8 +44,8 @@ impl<T> Awesome<T>
 }
 
 impl<T> Awesome<T>
-    where T: callbacks::Awesome + Beautiful + Button + Client + Drawin +
-    Keygrabber + Mousegrabber + Mouse + Root + Screen + Tag {
+    where T: callbacks::Awesome + Button + Client + Drawin + Keygrabber +
+    Mousegrabber + Mouse + Root + Screen + Tag {
 
     /// Load the rc.lua configuration file from the specified path.
     pub fn load_configuration(&mut self, path: PathBuf, lua: &Lua)
