@@ -1,7 +1,7 @@
 //! Callbacks for the `screen` object in the Lua libraries
 
+use ::luaA;
 use ::lua::Lua;
-use super::default;
 use libc::c_int;
 
 #[allow(non_snake_case)]
@@ -22,20 +22,30 @@ pub trait Screen {
     fn screen_fake_add(&self, lua: Lua) -> c_int;
     // Object meta methods
     fn screen___tostring_meta(&self, lua: Lua) -> c_int {
-        default::__tostring_meta(lua)
+        unsafe {
+            luaA::object_tostring(lua.0)
+        }
     }
     fn screen_connect_signal_meta(&self, lua: Lua) -> c_int {
-        default::connect_signal_meta(lua)
+        unsafe {
+            luaA::object_connect_signal_simple(lua.0)
+        }
     }
     fn screen_disconnect_signal_meta(&self, lua: Lua) -> c_int {
-        default::disconnect_signal_meta(lua)
+        unsafe {
+            luaA::object_disconnect_signal_simple(lua.0)
+        }
     }
     // Class meta methods
     fn screen___index_meta(&self, lua: Lua) -> c_int {
-        default::__index_meta(lua)
+        unsafe {
+            luaA::class_index(lua.0)
+        }
     }
     fn screen___newindex_meta(&self, lua: Lua) -> c_int {
-        default::__index_meta(lua)
+        unsafe {
+            luaA::class_newindex(lua.0)
+        }
     }
     // Meta methods
     fn screen_fake_remove(&self, lua: Lua) -> c_int;

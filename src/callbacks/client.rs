@@ -1,6 +1,6 @@
 //! Callbacks for the `client` object in the Lua libraries
 
-use super::default;
+use ::luaA;
 use ::lua::Lua;
 use libc::c_int;
 
@@ -15,19 +15,29 @@ pub trait Client {
     fn client_set_newindex_miss_handler(&self, lua: Lua) -> c_int;
     fn client___call(&self, lua: Lua) -> c_int;
     fn client___tostring_meta(&self, lua: Lua) -> c_int {
-        default::__tostring_meta(lua)
+        unsafe {
+            luaA::object_tostring(lua.0)
+        }
     }
     fn client_connect_signal_meta(&self, lua: Lua) -> c_int {
-        default::connect_signal_meta(lua)
+        unsafe {
+            luaA::object_connect_signal_simple(lua.0)
+        }
     }
     fn client_disconnect_signal_meta(&self, lua: Lua) -> c_int {
-        default::disconnect_signal_meta(lua)
+        unsafe {
+            luaA::object_disconnect_signal_simple(lua.0)
+        }
     }
     fn client___index_meta(&self, lua: Lua) -> c_int {
-        default::__index_meta(lua)
+        unsafe {
+            luaA::class_index(lua.0)
+        }
     }
     fn client___newindex_meta(&self, lua: Lua) -> c_int {
-        default::__newindex_meta(lua)
+        unsafe {
+            luaA::class_newindex(lua.0)
+        }
     }
     fn client_get(&self, lua: Lua) -> c_int;
     fn client___index(&self, awsemoe: Lua) -> c_int;

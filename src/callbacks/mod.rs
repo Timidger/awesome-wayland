@@ -14,8 +14,6 @@ pub mod mouse;
 pub mod root;
 pub mod screen;
 pub mod tag;
-// Helper modules
-pub mod default;
 
 pub use self::awesome::Awesome;
 pub use self::button::Button;

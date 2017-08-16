@@ -1,7 +1,7 @@
 //! Callbacks for the `button` object in the Lua libraries
 
+use ::luaA;
 use ::lua::Lua;
-use super::default;
 use libc::c_int;
 
 #[allow(non_snake_case)]
@@ -17,21 +17,31 @@ pub trait Button {
     fn button___call(&self, lua: Lua) -> c_int;
     /* Meta */
     fn button___tostring_meta(&self, lua: Lua) -> c_int {
-        default::__tostring_meta(lua)
+        unsafe {
+            luaA::object_tostring(lua.0)
+        }
     }
     fn button_connect_signal_meta(&self, lua: Lua) -> c_int {
-        default::connect_signal_meta(lua)
+        unsafe {
+            luaA::object_connect_signal_simple(lua.0)
+        }
     }
     fn button_disconnect_signal_meta(&self, lua: Lua) -> c_int {
-        default::disconnect_signal_meta(lua)
+        unsafe {
+            luaA::object_disconnect_signal_simple(lua.0)
+        }
     }
     // TODO Give these the default impls
     /* LUA_CLASS_META methods */
     fn button___index_meta(&self, lua: Lua) -> c_int {
-        default::__index_meta(lua)
+        unsafe {
+            luaA::class_index(lua.0)
+        }
     }
     fn button___newindex_meta(&self, lua: Lua) -> c_int {
-        default::__newindex_meta(lua)
+        unsafe {
+            luaA::class_newindex(lua.0)
+        }
     }
     /* Properties  */
     properties!([
