@@ -777,6 +777,7 @@ pub mod luaA {
             let name = CString::new((*cur_class).name.clone()).unwrap();
             lua_pushstring(lua, name.as_ptr());
             ::lua::lua_insert(lua, -{offset += 1; offset});
+            ::std::mem::forget(name);
 
             if let Some(tostring) = (*cur_class).tostring {
                 lua_pushstring(lua, c_str!("("));
@@ -1312,6 +1313,7 @@ pub mod luaA {
                 let modifier = super::xutil_key_mask_tostr(maski);
                 let modifier_c = CString::new(modifier).unwrap();
                 lua_pushlstring(lua, modifier_c.as_ptr() as _, modifier.len());
+                ::std::mem::forget(modifier_c);
                 lua_rawseti(lua, -2, i);
                 i += 1;
             }
