@@ -7,6 +7,7 @@ authors = ["Timidger <APragmaticPlace@gmail.com>"]
 [dependencies]
 libc = "0.2.*"
 lua-sys = { version = "0.1.*", features = [] } # No compile-time bindings
+xcb = "0.8.*"
 lazy_static = "0.2"
 
 [dev-dependencies]

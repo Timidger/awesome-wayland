@@ -9,6 +9,9 @@
 extern crate libc;
 // Bindings to the system's Lua
 extern crate lua_sys;
+// XCB definitions, this is mostly so that we can use old values as Lua
+// expects them, and to ensure that the right types are defined per arch.
+extern crate xcb;
 // So we can have static variables (that are thread safe)
 #[macro_use] extern crate lazy_static;
 

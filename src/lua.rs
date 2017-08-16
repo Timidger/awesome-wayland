@@ -239,6 +239,7 @@ pub mod luaA {
     use ::object::Property;
     use ::object::class::{Class, Object, AllocatorF, CheckerF, CollectorF,
                           PropF};
+    use callbacks::button::ButtonState;
     // This weird line is so that I can use luaA namespace explicitly here.
     use super::luaA;
 
@@ -1268,6 +1269,72 @@ pub mod luaA {
                                          name,
                                          luaA::object_ref(lua, ud))
     }
+
+    pub unsafe fn class_add_property<S>(class: *mut Class,
+                                        name: S,
+                                        new: Option<PropF>,
+                                        index: Option<PropF>,
+                                        new_index: Option<PropF>)
+        where S: Into<String>
+    {
+        let prop = Property {
+            name: name.into(),
+            new,
+            index,
+            new_index
+        };
+        (*class).properties.push(prop);
+    }
+
+    pub unsafe fn tomodifiers(lua: *mut lua_State, ud: libc::c_int) -> u16 {
+        use xcb::ffi::base::XCB_NONE;
+        luaA::checktable(lua, ud);
+        let len = luaA::rawlen(lua, ud);
+        let mut modifiers = XCB_NONE;
+        for i in 1..(len as i64 + 1) {
+            lua_rawgeti(lua, ud, i);
+            let key = luaL_checklstring(lua, -1, NULL as _);
+            let key_str = CStr::from_ptr(key).to_str().unwrap();
+            modifiers |= super::xutil_key_mask_fromstr(key_str) as _;
+            lua_pop(lua, 1);
+        }
+        return modifiers as _;
+    }
+
+    pub unsafe fn pushmodifiers(lua: *mut lua_State, modifiers: u16)
+                                -> libc::c_int {
+        use xcb::xproto::*;
+        lua_newtable(lua);
+        let mut i = 1;
+        let mut maski = MOD_MASK_SHIFT;
+        while maski != MOD_MASK_ANY {
+            if (maski & modifiers as u32) != 0 {
+                let modifier = super::xutil_key_mask_tostr(maski);
+                let modifier_c = CString::new(modifier).unwrap();
+                lua_pushlstring(lua, modifier_c.as_ptr() as _, modifier.len());
+                lua_rawseti(lua, -2, i);
+                i += 1;
+            }
+            maski <<= 1;
+        }
+        return 1;
+    }
+
+    pub unsafe fn button_set_button(lua: *mut lua_State, obj: *mut Object)
+                                       -> libc::c_int {
+        let b: *mut ButtonState = obj as _;
+        (*b).button = luaL_checkinteger(lua, -1) as _;
+        luaA::object_emit_signal(lua, -3, c_str!("property::button"), 0);
+        0
+    }
+
+    pub unsafe fn button_set_modifiers(lua: *mut lua_State, obj: *mut Object)
+                                       -> libc::c_int {
+        let b: *mut ButtonState = obj as _;
+        (*b).modifiers = luaA::tomodifiers(lua, -1);
+        luaA::object_emit_signal(lua, -3, c_str!("property::modifiers"), 0);
+        0
+    }
 }
 
 use libc;
@@ -1279,4 +1346,41 @@ pub unsafe fn lua_remove(lua: *mut lua_State, idx: libc::c_int) {
 
 pub unsafe fn lua_insert(lua: *mut lua_State, idx: libc::c_int) {
     lua_rotate(lua, idx, 1);
+}
+
+
+// TODO move
+/// Gets the key mask associated with the name
+fn xutil_key_mask_fromstr(keyname: &str) -> u16 {
+    use xcb::xproto::*;
+    use xcb::base::NO_SYMBOL;
+    let num = match keyname {
+        "Shift" => MOD_MASK_SHIFT,
+        "Lock" => MOD_MASK_LOCK,
+        "Ctrl" | "Control" => MOD_MASK_CONTROL,
+        "Mod1" => MOD_MASK_1,
+        "Mod2" => MOD_MASK_2,
+        "Mod3" => MOD_MASK_3,
+        "Mod4" => MOD_MASK_4,
+        "Mod5" => MOD_MASK_5,
+        "Any" => MOD_MASK_ANY,
+        _ => NO_SYMBOL
+    } as u16;
+    num
+}
+
+fn xutil_key_mask_tostr(mask: u32) -> &'static str{
+    use xcb::xproto::*;
+    match mask {
+        MOD_MASK_SHIFT => "Shift",
+        MOD_MASK_LOCK => "Lock",
+        MOD_MASK_CONTROL => "Control",
+        MOD_MASK_1 => "Mod1",
+        MOD_MASK_2 => "Mod2",
+        MOD_MASK_3 => "Mod3",
+        MOD_MASK_4 => "Mod4",
+        MOD_MASK_5 => "Mod5",
+        MOD_MASK_ANY => "Any",
+        _ => "Unknown"
+    }
 }

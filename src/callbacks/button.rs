@@ -2,7 +2,16 @@
 
 use ::luaA;
 use ::lua::Lua;
+use ::object::signal::Signal;
 use libc::c_int;
+use xcb::ffi::xproto::xcb_button_t;
+
+/// State of the button
+pub struct ButtonState {
+    pub signals: Vec<Signal>,
+    pub modifiers: u16,
+    pub button: xcb_button_t
+}
 
 #[allow(non_snake_case)]
 pub trait Button {
@@ -49,6 +58,9 @@ pub trait Button {
     ]);
 }
 
+use luaA::pushmodifiers;
+LUA_OBJECT_EXPORT_PROPERTY!(button_get_button, ButtonState, button, lua_pushinteger);
+LUA_OBJECT_EXPORT_PROPERTY!(button_get_modifiers, ButtonState, button, pushmodifiers);
 
 use lua_sys::*;
 use ::object::class::{Class, Object};
@@ -136,5 +148,13 @@ pub unsafe fn button_class_setup(lua: *mut lua_State) {
                       button_new, None, None,
                       Some(luaA::class_index_miss_property),
                       Some(luaA::class_newindex_miss_property),
-                      &button_methods, &button_meta)
+                      &button_methods, &button_meta);
+    luaA::class_add_property(&mut *button_class, "button",
+                             Some(luaA::button_set_button),
+                             Some(button_get_button),
+                             Some(luaA::button_set_button));
+    luaA::class_add_property(&mut *button_class, "modifiers",
+                             Some(luaA::button_set_modifiers),
+                             Some(button_get_modifiers),
+                             Some(luaA::button_set_modifiers));
 }

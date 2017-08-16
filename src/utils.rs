@@ -574,3 +574,17 @@ macro_rules! LUA_CLASS_FUNCS {
         }
     }
 }
+
+
+/// See LUA_OBJECT_EXPORT_PROPRERTY in the C lib for more details
+#[macro_export]
+macro_rules! LUA_OBJECT_EXPORT_PROPERTY {
+    ($f_name:ident, $type:ty, $field:ident, $pusher:ident) => {
+        pub unsafe fn $f_name(lua: *mut lua_State,
+                              ty: *mut ::object::class::Object)
+                              -> ::libc::c_int {
+            $pusher(lua, (*(ty as *mut $type)).$field as _);
+            1
+        }
+    }
+}
