@@ -127,10 +127,6 @@ impl Lua {
             /* Add the methods to the table */
             lua_newtable(l);
             luaL_setfuncs(l, methods.as_ptr(), 0);
-            // TODO This is only valid for versions >= 5.2.
-            // For old versions, there is a different way
-            // and this should support that.
-            // <= 5.1 code it is just: luaL_register
             lua_pushvalue(l, -1);
             // NOTE Pops the value from the stack
             lua_setglobal(l, c_name.as_ptr());

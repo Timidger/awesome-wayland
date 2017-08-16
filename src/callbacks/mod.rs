@@ -25,6 +25,3 @@ pub use self::mouse::Mouse;
 pub use self::root::Root;
 pub use self::screen::Screen;
 pub use self::tag::Tag;
-
-// TODO I don't think this is needed
-pub trait Beautiful {}

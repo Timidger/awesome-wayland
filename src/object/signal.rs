@@ -1,4 +1,3 @@
-// TODO I shouldn't use c_void here...<T>?
 use libc::c_void;
 use std::cmp::{Eq, PartialEq};
 use std::collections::hash_map::DefaultHasher;

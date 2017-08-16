@@ -33,8 +33,6 @@ pub struct Class {
     pub checker: Option<CheckerF>,
     pub instances: i32,
     pub tostring: Option<PropF>,
-    // TODO Do we need these? These are pointers to methods on the stack
-    // And are wildly unsafe. See how they are used first
     pub index_miss_handler: libc::c_int,
     pub newindex_miss_handler: libc::c_int
 }
