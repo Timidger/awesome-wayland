@@ -490,11 +490,11 @@ pub unsafe fn luaL_opt(lua: *mut lua_State, f: fn(*mut lua_State, libc::c_int) -
 macro_rules! LUA_OBJECT_FUNCS {
     ($lua_class:path, $type:ty, $new_name:ident) => {
         use ::lua_sys::*;
+        use std::ptr;
         pub unsafe extern fn $new_name(lua: *mut lua_State) -> *mut Object {
             let type_size =::std::mem::size_of::<$type>();
             let p = lua_newuserdata(lua, type_size) as *mut $type;
-            // TODO memzero this
-            //*p = ::std::mem::transmute(0);
+            ptr::write_bytes(p, 0, type_size);
             let mut class = $lua_class.lock().unwrap();
             class.instances += 1;
             luaA::settype(lua, &mut *class);
