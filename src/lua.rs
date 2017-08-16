@@ -201,10 +201,10 @@ impl Lua {
     /// so if you want them to take precedence call this method earlier than
     /// other methods that modify the path
     /// (e.g [add_lib_lookup_path](add_lib_lookup_path)).
-    pub fn add_default_awesome_libs(&self) {
+    pub fn add_default_awesome_libs(&self) -> Result<(), LuaErr>{
         self.add_lib_lookup_path(&[";/usr/share/awesome/lib/?.lua;".into(),
                                    ";/usr/share/awesome/lib/?/init.lua;".into()
-        ]);
+        ])
     }
 }
 
@@ -248,7 +248,7 @@ pub mod luaA {
 
     // Global button class definitions
     lazy_static! {
-        pub static ref button_class: Mutex<Class> = Mutex::new(Class::default());
+        pub static ref BUTTON_CLASS: Mutex<Class> = Mutex::new(Class::default());
     }
 
     const NULL: *mut libc::c_void = 0 as _;
@@ -606,7 +606,7 @@ pub mod luaA {
         // We can fix this later with a sweet little Cell, but for now it's
         // not possible :(.
         let class_ptr = {
-            let mut class = button_class.lock().unwrap();
+            let mut class = BUTTON_CLASS.lock().unwrap();
             (&mut *class) as *mut _
         };
         luaA::class_new(lua, class_ptr)

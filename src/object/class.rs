@@ -1,8 +1,6 @@
 //! These methods set up a interface to be a class for Lua.
 
-// TODO double check I need these c_* types
-
-use libc::{self, c_int};
+use libc;
 use lua_sys::*;
 use super::signal::Signal;
 use super::property::Property;
@@ -12,23 +10,9 @@ pub type AllocatorF = unsafe extern fn(*mut lua_State) -> *mut Object;
 /// Method that is called when the object is garbage collected.
 pub type CollectorF = unsafe fn(*mut Object);
 /// Function to call when accessing a property in some way.
-pub type PropF = unsafe fn(*mut lua_State, *mut Object) -> c_int;
+pub type PropF = unsafe fn(*mut lua_State, *mut Object) -> libc::c_int;
 /// Function to call to check if an object is valid.
 pub type CheckerF = unsafe fn(*mut Object) -> bool;
-
-/// The super class to all [Class](Class)es.
-///
-/// These can be downcasted into a concrete class type if necessary.
-/*pub trait Object: ::std::any::Any {
-    fn signals(&self) -> Vec<Signal>;
-}*/
-
-#[repr(C)]
-struct array_t<T> {
-    tab: *mut T,
-    len: libc::c_int,
-    size: libc::c_int
-}
 
 pub struct Object {
     pub signals: Vec<Signal>
@@ -51,8 +35,8 @@ pub struct Class {
     pub tostring: Option<PropF>,
     // TODO Do we need these? These are pointers to methods on the stack
     // And are wildly unsafe. See how they are used first
-    pub index_miss_handler: c_int,
-    pub newindex_miss_handler: c_int
+    pub index_miss_handler: libc::c_int,
+    pub newindex_miss_handler: libc::c_int
 }
 
 unsafe impl Send for Class {}
@@ -85,7 +69,7 @@ impl Default for Class {
 /// # SAFETY
 /// It's not guaranteed that the index is valid.
 /// The lifetime is also not bounded, this might eventually be fixed.
-pub unsafe fn class_get<'a>(l: *mut lua_State, idx: c_int) -> Option<&'a Class> {
+pub unsafe fn class_get<'a>(l: *mut lua_State, idx: libc::c_int) -> Option<&'a Class> {
     let ty = lua_type(l, idx);
     if ty == LUA_TUSERDATA as i32 && lua_getmetatable(l, idx) != 0 {
         /* Use the metatable has key to get the class from the registry */

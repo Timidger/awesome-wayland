@@ -34,8 +34,8 @@ fn main() {
 }
 
 unsafe fn button_class_setup(lua: *mut lua_State) {
-    LUA_OBJECT_FUNCS!(luaA::button_class, Class, button_new);
-    LUA_CLASS_FUNCS!(luaA::button_class, button_class_add_signal,
+    LUA_OBJECT_FUNCS!(luaA::BUTTON_CLASS, Class, button_new);
+    LUA_CLASS_FUNCS!(luaA::BUTTON_CLASS, button_class_add_signal,
                      button_class_connect_signal,
                      button_class_disconnect_signal,
                      button_class_emit_signal,
@@ -112,7 +112,7 @@ unsafe fn button_class_setup(lua: *mut lua_State) {
         }
     ];
     let NULL = ::std::ptr::null_mut();
-    let mut button_class = luaA::button_class.lock().unwrap();
+    let mut button_class = luaA::BUTTON_CLASS.lock().unwrap();
     luaA::class_setup(lua, &mut *button_class, c_str!("button"), NULL as _,
                       button_new, None, None,
                       Some(luaA::class_index_miss_property),
