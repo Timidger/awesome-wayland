@@ -66,7 +66,11 @@ pub unsafe fn signal_object_emit(lua: *mut lua_State, signals: &[Signal],
 pub unsafe fn signal_connect(signals: &mut Vec<Signal>, name: *const libc::c_char,
                              ptr: *mut libc::c_void) {
     let mut hasher = DefaultHasher::new();
-    hasher.write(CStr::from_ptr(name).to_str().unwrap().as_bytes());
+    let c_name = CStr::from_ptr(name);
+    let c_name_str = c_name.to_str().unwrap();
+    hasher.write(c_name_str.as_bytes());
+    ::std::mem::forget(c_name);
+    ::std::mem::forget(c_name_str);
     let id = hasher.finish();
     if let Some(mut sig) = signals.iter_mut().find(|sig| sig.id == id) {
         sig.sigfuncs.push(SignalFunc(ptr));
@@ -83,7 +87,11 @@ pub unsafe fn signal_disconnect(signals: &mut Vec<Signal>,
                                 name: *const libc::c_char,
                                 ptr: *mut libc::c_void) -> libc::c_int {
     let mut hasher = DefaultHasher::new();
-    hasher.write(CStr::from_ptr(name).to_str().unwrap().as_bytes());
+    let c_name = CStr::from_ptr(name);
+    let c_name_str = c_name.to_str().unwrap();
+    hasher.write(c_name_str.as_bytes());
+    ::std::mem::forget(c_name);
+    ::std::mem::forget(c_name_str);
     let id = hasher.finish();
     if let Some(index) = signals.iter().position(|sig| sig.id == id) {
         for i in 0..signals[index].sigfuncs.len() {

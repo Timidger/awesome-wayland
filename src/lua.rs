@@ -113,6 +113,7 @@ impl Lua {
             let c_name = CStr::from_bytes_with_nul(name.as_bytes())
                 .map_err(|_| LuaErr::EvalFFI(FFIErr::NullByte(name.into())))?;
             let result = luaL_newmetatable(l, c_name.as_ptr());
+            ::std::mem::forget(c_name);
             if result == ALREADY_DEFINED {
                 // variable is still pushed to the stack
                 lua_pop(l, 1);
@@ -765,21 +766,24 @@ pub mod luaA {
     }
 
     pub unsafe extern fn object_tostring(lua: *mut lua_State) -> libc::c_int {
-        let lua_class = luaA::class_get(lua, 1);
+        let mut lua_class = luaA::class_get(lua, 1);
+        if lua_class.is_null() {
+            eprintln!("lua class was null!");
+            return 0;
+        }
         let object = luaA::checkudata(lua, 1, lua_class);
         let mut offset = 0;
-        let mut cur_class = lua_class;
-        while ! cur_class.is_null() {
+        while ! lua_class.is_null() {
             if offset != 0 {
                 lua_pushstring(lua, c_str!("/"));
                 ::lua::lua_insert(lua, -{offset += 1; offset});
             }
-            let name = CString::new((*cur_class).name.clone()).unwrap();
+            let name = CString::new((*lua_class).name.clone()).unwrap();
             lua_pushstring(lua, name.as_ptr());
             ::lua::lua_insert(lua, -{offset += 1; offset});
             ::std::mem::forget(name);
 
-            if let Some(tostring) = (*cur_class).tostring {
+            if let Some(tostring) = (*lua_class).tostring {
                 lua_pushstring(lua, c_str!("("));
                 let n = 2 + tostring(lua, object as _);
                 lua_pushstring(lua, c_str!(")"));
@@ -790,7 +794,7 @@ pub mod luaA {
                 offset += n;
             }
 
-            cur_class = (*cur_class).parent;
+            lua_class = (*lua_class).parent;
         }
         lua_pushfstring(lua, c_str!(": %p"), object);
 
