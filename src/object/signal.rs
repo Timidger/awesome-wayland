@@ -87,8 +87,13 @@ pub unsafe fn signal_disconnect(signals: &mut Vec<Signal>,
     hasher.write(CStr::from_ptr(name).to_str().unwrap().as_bytes());
     let id = hasher.finish();
     if let Some(index) = signals.iter().position(|sig| sig.id == id) {
-        // TODO This might be a memory leak
-        signals.remove(index);
+        for i in 0..signals[index].sigfuncs.len() {
+            if signals[index].sigfuncs[i].0 == ptr {
+                // TODO This might be a memory leak
+                signals.remove(i);
+                break;
+            }
+        }
         1
     } else {
         0
