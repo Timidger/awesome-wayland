@@ -96,6 +96,7 @@ impl Lua {
                 Err(LuaErr::Eval(error))?
             }
         }
+        ::std::mem::forget(path_str);
         Ok(())
     }
 
@@ -588,6 +589,7 @@ pub mod luaA {
             }
             class = (*class).parent;
         }
+        ::std::mem::forget(attr);
         return ::std::ptr::null_mut();
     }
 
@@ -827,6 +829,7 @@ pub mod luaA {
         if p.is_null() {
             let name = CString::new((*class).name.clone()).unwrap();
             luaA::typeerror(lua, ud, name.as_ptr());
+            ::std::mem::forget(name);
         } else if let Some(checker) = (*class).checker {
             checker(p as _);
             luaL_error(lua, c_str!("invalid object"));
