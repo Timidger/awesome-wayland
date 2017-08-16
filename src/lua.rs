@@ -151,7 +151,6 @@ impl Lua {
             self.load_and_run(lib_path)?;
             println!("Setting global to {:#?}", c_name);
             lua_setglobal(self.0, c_name.as_ptr());
-            // TODO needed?
             ::std::mem::forget(c_name);
         }
         Ok(())
@@ -176,7 +175,6 @@ impl Lua {
                               .map_err(|_|
                                        LuaErr::EvalFFI(FFIErr::NullByte(path.to_str().unwrap().into()))))?;
                 lua_pushfstring(lua, c_path.as_ptr());
-                // TODO needed?
                 ::std::mem::forget(c_path);
             }
             // concatenate with thing on top of the stack when we were called
