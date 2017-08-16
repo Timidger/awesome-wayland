@@ -59,23 +59,3 @@ impl Default for Class {
         }
     }
 }
-
-/// Get an object lua_class
-/// l: The lua state
-/// idx: The index of the object on the stack
-///
-/// # SAFETY
-/// It's not guaranteed that the index is valid.
-/// The lifetime is also not bounded, this might eventually be fixed.
-pub unsafe fn class_get<'a>(l: *mut lua_State, idx: libc::c_int) -> Option<&'a Class> {
-    let ty = lua_type(l, idx);
-    if ty == LUA_TUSERDATA as i32 && lua_getmetatable(l, idx) != 0 {
-        /* Use the metatable has key to get the class from the registry */
-        lua_rawget(l, LUA_REGISTRYINDEX);
-        let class_raw = lua_touserdata(l, -1);
-        let class = &*(class_raw as *mut Class);
-        lua_pop(l, 1);
-        return Some(class);
-    }
-    None
-}
