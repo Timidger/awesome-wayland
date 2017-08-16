@@ -67,7 +67,8 @@ use ::object::class::{Class, Object};
 
 pub unsafe fn button_class_setup(lua: *mut lua_State) {
     LUA_OBJECT_FUNCS!(luaA::BUTTON_CLASS, Class, button_new);
-    LUA_CLASS_FUNCS!(luaA::BUTTON_CLASS, button_class_add_signal,
+    LUA_CLASS_FUNCS!(luaA::BUTTON_CLASS,
+                     button_class_add_signal,
                      button_class_connect_signal,
                      button_class_disconnect_signal,
                      button_class_emit_signal,
