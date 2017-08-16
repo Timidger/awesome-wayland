@@ -3,6 +3,7 @@
 use ::lua::Lua;
 use libc::c_int;
 
+#[allow(non_snake_case)]
 pub trait Awesome {
     fn awesome_quit(&self, lua: Lua) -> c_int;
     fn awesome_exec(&self, lua: Lua) -> c_int;

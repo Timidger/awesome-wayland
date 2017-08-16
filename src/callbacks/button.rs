@@ -4,9 +4,7 @@ use ::lua::Lua;
 use super::default;
 use libc::c_int;
 
-// TODO This is a class, need to setup the class properly...
-// Can probably do that in the `register` macro.
-
+#[allow(non_snake_case)]
 pub trait Button {
     /* Methods */
     fn button_add_signal(&self, lua: Lua) -> c_int;
@@ -44,7 +42,6 @@ pub trait Button {
 
 
 use lua_sys::*;
-use ::luaA;
 use ::object::class::{Class, Object};
 
 pub unsafe fn button_class_setup(lua: *mut lua_State) {
@@ -125,9 +122,8 @@ pub unsafe fn button_class_setup(lua: *mut lua_State) {
             func: None
         }
     ];
-    let NULL = ::std::ptr::null_mut();
     let mut button_class = luaA::button_class.lock().unwrap();
-    luaA::class_setup(lua, &mut *button_class, c_str!("button"), NULL as _,
+    luaA::class_setup(lua, &mut *button_class, c_str!("button"), null_mut() as _,
                       button_new, None, None,
                       Some(luaA::class_index_miss_property),
                       Some(luaA::class_newindex_miss_property),

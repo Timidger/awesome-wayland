@@ -3,6 +3,7 @@
 use ::lua::Lua;
 use libc::c_int;
 
+#[allow(non_snake_case)]
 pub trait Root {
     /* Methods */
     fn root_buttons(&self, lua: Lua) -> c_int;

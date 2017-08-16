@@ -449,6 +449,7 @@ macro_rules! register_for_lua {
     ($callback_impl:ident, $global_name:ident) => {
         use ::std::sync::{RwLock, Arc};
         lazy_static! {
+            #[allow(non_upper_case_globals)]
             pub static ref $global_name: RwLock<Awesome<$callback_impl>> =
                 RwLock::new(Awesome::new());
             pub static ref LUA: Arc<Lua> = Arc::new(Lua::new());
@@ -469,6 +470,8 @@ macro_rules! properties {
 
 use lua_sys::*;
 use libc;
+
+#[allow(non_snake_case)]
 pub unsafe fn luaL_opt(lua: *mut lua_State, f: fn(*mut lua_State, libc::c_int) -> lua_Integer,
                 n: libc::c_int, d: lua_Integer)
                 -> lua_Integer {
@@ -514,11 +517,13 @@ macro_rules! LUA_CLASS_FUNCS {
     ($lua_class:path, $add_sig:ident, $con_sig: ident, $discon_sig:ident,
      $emit_sig:ident, $class_inst: ident, $index_miss:ident,
      $newindex_miss:ident) => {
+        #[allow(unused_imports)]
         use ::lua_sys::*;
         use ::std::ptr::null_mut;
-        use ::awesome_wayland::luaA;
+        use ::libc;
+        use ::luaA;
 
-        unsafe extern fn $add_sig(lua: *mut lua_State) -> libc::c_int {
+        unsafe extern fn $add_sig(_lua: *mut lua_State) -> libc::c_int {
             eprintln!("signal usage with add_signal()");
             0
         }

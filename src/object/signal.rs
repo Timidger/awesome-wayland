@@ -4,10 +4,10 @@ use std::cmp::{Eq, PartialEq};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::Hasher;
 use std::sync::Mutex;
-use std::ffi::{CString, CStr};
+use std::ffi::CStr;
 
 lazy_static! {
-    pub static ref global_signals: Mutex<Vec<Signal>> = Mutex::new(vec![]);
+    pub static ref GLOBAL_SIGNALS: Mutex<Vec<Signal>> = Mutex::new(vec![]);
 }
 
 pub struct SignalFunc(*mut c_void);
@@ -41,7 +41,7 @@ pub unsafe fn signal_object_emit(lua: *mut lua_State, signals: &[Signal],
     let mut hasher = DefaultHasher::new();
     hasher.write(name.as_bytes());
     let id = hasher.finish();
-    if let Some(mut sig) = signals.iter().find(|sig| sig.id == id) {
+    if let Some(sig) = signals.iter().find(|sig| sig.id == id) {
         let nbfunc = sig.sigfuncs.len() as i32;
         luaL_checkstack(lua, nbfunc + nargs + 1, c_str!("too much signal"));
         /* Push all functions and then execute, because this list can change
@@ -51,7 +51,7 @@ pub unsafe fn signal_object_emit(lua: *mut lua_State, signals: &[Signal],
         }
         for i in 0..nbfunc {
             /* push all args */
-            for j in 0..nargs {
+            for _ in 0..nargs {
                 lua_pushvalue(lua, - nargs - nbfunc + i);
             }
             /* push first function */

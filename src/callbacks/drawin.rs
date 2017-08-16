@@ -4,6 +4,7 @@ use ::lua::Lua;
 use super::default;
 use libc::c_int;
 
+#[allow(non_snake_case)]
 pub trait Drawin {
     // Class Methods
     fn drawin_add_signal(&self, lua: Lua) -> c_int;

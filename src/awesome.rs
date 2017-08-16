@@ -6,7 +6,6 @@ use std::path::PathBuf;
 use super::lua::{Lua, LuaErr};
 use super::callbacks::{self, Beautiful, Button, Client, Drawin, Keygrabber,
                        Mousegrabber, Mouse, Root, Screen, Tag};
-use std::sync::Mutex;
 
 /// Represents the bindings to the awesome libraries.
 /// Contains the raw Lua context, as well as the struct that has all of the

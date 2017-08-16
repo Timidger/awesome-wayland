@@ -3,6 +3,7 @@
 use ::lua::Lua;
 use libc::c_int;
 
+#[allow(non_snake_case)]
 pub trait Keygrabber {
     /* Methods */
     fn keygrabber_run(&self, lua: Lua) -> c_int;

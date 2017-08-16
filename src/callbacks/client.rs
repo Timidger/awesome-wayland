@@ -4,6 +4,7 @@ use super::default;
 use ::lua::Lua;
 use libc::c_int;
 
+#[allow(non_snake_case)]
 pub trait Client {
     fn client_add_signal(&self, lua: Lua) -> c_int;
     fn client_connect_signal(&self, lua: Lua) -> c_int;

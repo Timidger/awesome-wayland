@@ -62,7 +62,7 @@ impl callbacks::Awesome for DummyStruct {
             val => {
                 // Didn't find anything
                 // TODO add something so I can call:
-                // signal_object_emit(L, &global_signals, "debug::index::miss", 2);
+                // signal_object_emit(L, &GLOBAL_SIGNALS, "debug::index::miss", 2);
                 eprintln!("Val ({:#?}) is not set", val);
                 0
             }

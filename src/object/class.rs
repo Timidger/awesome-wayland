@@ -2,12 +2,10 @@
 
 // TODO double check I need these c_* types
 
-use libc::{self, c_int, c_uint};
+use libc::{self, c_int};
 use lua_sys::*;
-use ::lua::Lua;
 use super::signal::Signal;
 use super::property::Property;
-use std::cell::UnsafeCell;
 
 /// Method that allocates new objects for the class.
 pub type AllocatorF = unsafe extern fn(*mut lua_State) -> *mut Object;

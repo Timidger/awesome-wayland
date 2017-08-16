@@ -5,7 +5,6 @@ use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 use std::ops::{Deref, DerefMut};
-use std::collections::HashMap;
 
 
 const ALREADY_DEFINED: i32 = 0;
@@ -207,45 +206,6 @@ impl Lua {
                                    ";/usr/share/awesome/lib/?/init.lua;".into()
         ]);
     }
-
-    /// Gets the argument from indexing a lua table.
-    /// This argument is always the second one.
-    pub fn get_index_arg_string(&self) -> Result<String, LuaErr> {
-        unsafe {
-            let lua = self.0;
-            let buf = luaL_checklstring(lua, 2, ::std::ptr::null_mut());
-            if buf.is_null() {
-                return Err(LuaErr::ArgumentInvalid)
-            }
-            let c_str = CStr::from_ptr(buf);
-            Ok(c_str.to_owned().into_string()
-               .map_err(|err|
-                        LuaErr::EvalFFI(FFIErr::Conversion(err.into_cstring())))?)
-
-        }
-    }
-
-    pub fn return_table<T>(&self, table: HashMap<String, T>) {
-        unsafe {
-            let lua = self.0;
-            lua_newtable(lua);
-            // TODO Push values to table
-        }
-    }
-
-    pub fn return_string<S: Into<String>>(&self, string: S)
-                                          -> Result<(), LuaErr> {
-        let return_val = string.into();
-        unsafe {
-            let lua = self.0;
-            let c_str = CString::new(return_val.clone())
-                .map_err(|_| LuaErr::EvalFFI(FFIErr::NullByte(return_val)))?;
-            lua_pushstring(lua, c_str.as_ptr());
-            // TODO Needed?
-            ::std::mem::forget(c_str);
-        }
-        Ok(())
-    }
 }
 
 
@@ -271,6 +231,7 @@ impl DerefMut for Lua {
 /// defined in the Awesome library.
 ///
 /// They should not be used directly and instead you should use [Lua](./Lua).
+#[allow(non_snake_case)]
 pub mod luaA {
     use lua_sys::*;
     use libc;
@@ -289,6 +250,7 @@ pub mod luaA {
     lazy_static! {
         pub static ref button_class: Mutex<Class> = Mutex::new(Class::default());
     }
+
     const NULL: *mut libc::c_void = 0 as _;
 
     pub struct ClassWrapper(*mut Class);
@@ -303,9 +265,10 @@ pub mod luaA {
     }
 
     lazy_static! {
-        /// Lua f unction to call on dofunction() error
+        /// Lua function to call on dofunction() error
         pub static ref ERROR_FUNC: RwLock<lua_CFunction> =
             RwLock::new(None);
+        pub static ref CLASSES: Mutex<LinkedList<ClassWrapper>> =
             Mutex::new(LinkedList::new());
     }
 
@@ -545,20 +508,20 @@ pub mod luaA {
     }
 
     pub unsafe fn class_index_miss_property(lua: *mut lua_State,
-                                            object: *mut Object)
+                                            _object: *mut Object)
                                             -> libc::c_int {
-        use object::{global_signals, signal_object_emit};
-        let GLOBALSIGNALS = global_signals.lock().unwrap();
-        signal_object_emit(lua, &*GLOBALSIGNALS, "debug::index::miss", 2);
+        use object::{GLOBAL_SIGNALS, signal_object_emit};
+        let global_signals = GLOBAL_SIGNALS.lock().unwrap();
+        signal_object_emit(lua, &*global_signals, "debug::index::miss", 2);
         return 0
     }
 
     pub unsafe fn class_newindex_miss_property(lua: *mut lua_State,
-                                               object: *mut Object)
+                                               _object: *mut Object)
                                                -> libc::c_int {
-        use object::{global_signals, signal_object_emit};
-        let GLOBALSIGNALS = global_signals.lock().unwrap();
-        signal_object_emit(lua, &*GLOBALSIGNALS, "debug::newindex::miss", 3);
+        use object::{GLOBAL_SIGNALS, signal_object_emit};
+        let global_signals = GLOBAL_SIGNALS.lock().unwrap();
+        signal_object_emit(lua, &*global_signals, "debug::newindex::miss", 3);
         return 0
     }
 
@@ -655,7 +618,7 @@ pub mod luaA {
         luaA::checktable(lua, 2);
 
         /* Create a new object */
-        let mut object_ptr = ((*class).allocator.unwrap())(lua);
+        let object_ptr = ((*class).allocator.unwrap())(lua);
 
         /* Push the first key before iterating */
         lua_pushnil(lua);
@@ -801,7 +764,7 @@ pub mod luaA {
         (*class).index_miss_handler = LUA_REFNIL;
         (*class).newindex_miss_handler = LUA_REFNIL;
 
-        luaA::classes.lock().unwrap().push_back(ClassWrapper::new(class));
+        luaA::CLASSES.lock().unwrap().push_back(ClassWrapper::new(class));
     }
 
     pub unsafe extern fn object_tostring(lua: *mut lua_State) -> libc::c_int {
@@ -819,12 +782,11 @@ pub mod luaA {
             ::lua::lua_insert(lua, -{offset += 1; offset});
 
             if let Some(tostring) = (*cur_class).tostring {
-                let (mut k, mut n) = (0, 0);
                 lua_pushstring(lua, c_str!("("));
-                n = 2 + tostring(lua, object as _);
+                let n = 2 + tostring(lua, object as _);
                 lua_pushstring(lua, c_str!(")"));
 
-                for k in 0..n {
+                for _ in 0..n {
                     ::lua::lua_insert(lua, -offset);
                 }
                 offset += n;
@@ -1096,7 +1058,7 @@ pub mod luaA {
                 /* push object */
                 lua_pushvalue(lua, oud_abs);
                 /* push all args */
-                for j in 0..nargs {
+                for _ in 0..nargs {
                     lua_pushvalue(lua, - nargs - nbfunc - 1 + i);
                 }
                 /* push first function */

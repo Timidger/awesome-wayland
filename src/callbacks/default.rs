@@ -2,6 +2,8 @@
 //! These are implementations that can be over-ruled by the user of the library
 //! but they probably don't want to do that for the general case.
 
+#[allow(non_snake_case)]
+
 use ::lua::Lua;
 use libc::c_int;
 
