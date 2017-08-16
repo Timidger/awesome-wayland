@@ -278,7 +278,7 @@ pub mod luaA {
     use std::collections::LinkedList;
     use std::collections::hash_map::DefaultHasher;
     use std::hash::Hasher;
-    use std::sync::Mutex;
+    use std::sync::{Mutex, RwLock};
     use ::object::Property;
     use ::object::class::{Class, Object, AllocatorF, CheckerF, CollectorF,
                           PropF};
@@ -303,7 +303,9 @@ pub mod luaA {
     }
 
     lazy_static! {
-        pub static ref classes: Mutex<LinkedList<ClassWrapper>> =
+        /// Lua f unction to call on dofunction() error
+        pub static ref ERROR_FUNC: RwLock<lua_CFunction> =
+            RwLock::new(None);
             Mutex::new(LinkedList::new());
     }
 
@@ -594,11 +596,15 @@ pub mod luaA {
     }
 
     pub unsafe extern fn dofunction_error(lua: *mut lua_State) -> libc::c_int {
-        // TODO
-        //if lualib_dofunction_on_error {
-        //    return  lualib_dofunction_on_error(lua);
-        //}
-        return 0;
+        match ERROR_FUNC.read() {
+            Ok(error_f_guard) => {
+                if let Some(error_f) = *error_f_guard {
+                    return error_f(lua)
+                }
+            },
+            _ => {}
+        }
+        0
     }
 
     pub unsafe fn checktable(lua: *mut lua_State, idx: libc::c_int) {
