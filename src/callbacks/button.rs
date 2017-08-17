@@ -7,6 +7,7 @@ use libc::c_int;
 use xcb::ffi::xproto::xcb_button_t;
 
 /// State of the button
+#[repr(C)]
 pub struct ButtonState {
     pub signals: Vec<Signal>,
     pub modifiers: u16,

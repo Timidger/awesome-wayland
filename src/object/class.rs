@@ -14,11 +14,13 @@ pub type PropF = unsafe fn(*mut lua_State, *mut Object) -> libc::c_int;
 /// Function to call to check if an object is valid.
 pub type CheckerF = unsafe fn(*mut Object) -> bool;
 
+#[repr(C)]
 pub struct Object {
     pub signals: Vec<Signal>
 }
 
 /// A Lua object that is a class.
+#[repr(C)]
 pub struct Class {
     pub name: String,
     pub signals: Vec<Signal>,
