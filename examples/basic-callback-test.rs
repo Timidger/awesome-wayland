@@ -78,9 +78,6 @@ impl callbacks::Button for DummyStruct {
     ]);
 }
 
-// TODO Remove
-impl callbacks::Beautiful for DummyStruct {}
-
 impl callbacks::Client for DummyStruct {
     default_impl!([
         client_add_signal,
