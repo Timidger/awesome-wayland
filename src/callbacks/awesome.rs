@@ -96,8 +96,8 @@ unsafe fn awesome_index(lua: *mut lua_State) -> c_int {
     let global_conf = GLOBAL_CONF.try_lock().unwrap();
     match buf {
         "conffile" => {
-            unimplemented!();
-            //lua_pushstring(lua, CONFFILE);
+            // TODO Dynamic way to get the configuration file.
+            lua_pushstring(lua, c_str!("/usr/xdg/awesome/rc.lua"));
             1
         },
         "version" | "release" => {
