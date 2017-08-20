@@ -54,6 +54,7 @@ impl Lua {
                 panic!("luaL_newstate returned NULL");
             }
             luaL_openlibs(lua);
+            luaA::object_setup(lua);
             Lua(lua)
         }
     }
