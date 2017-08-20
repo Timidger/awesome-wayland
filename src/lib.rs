@@ -25,5 +25,5 @@ pub use lua::*;
 pub use utils::*;
 pub mod globalconf;
 
-
+pub use globalconf::GLOBAL_CONF;
 pub use awesome::Awesome;

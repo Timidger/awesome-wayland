@@ -23,112 +23,112 @@ type void_ptr = *mut c_void;
 /// Main configuration structure
 pub struct GlobalConf {
     /// XCB Connection ref
-    connection: (),
+    pub connection: (),
     /// X Resources DB
-    xrmdb: void_ptr,
+    pub xrmdb: void_ptr,
     /// Default screen number
-    default_screen: i32,
+    pub default_screen: i32,
     /// xcb-cursor context
-    cursor_ctx: (),
+    pub cursor_ctx: (),
     /// Keys symbol table
-    keysms: void_ptr,
+    pub keysms: void_ptr,
     /// Logical screens
-    screens: Vec<void_ptr>,
+    pub screens: Vec<void_ptr>,
     /// The primary screen, access through screen_get_primary()
-    primary_screen: Vec<void_ptr>,
+    pub primary_screen: Vec<void_ptr>,
     /// Root window key bindings
-    keys: Vec<void_ptr>,
+    pub keys: Vec<void_ptr>,
     /// Root window mouse bindings
-    buttons: Vec<ButtonState>,
+    pub buttons: Vec<ButtonState>,
     /// Atom for WM_Sn
-    selection_atom: (),
+    pub selection_atom: (),
     /// Window owning the WM_Sn selection
-    selection_owner_window: (),
+    pub selection_owner_window: (),
     /// Do we have RandR 1.3 or newer?
-    have_randr_13: bool,
+    pub have_randr_13: bool,
     /// Do we have RandR 1.5 or newer?
-    have_randr_15: bool,
+    pub have_randr_15: bool,
     /// Do we have a RandR screen update pending?
-    screen_need_refresh: bool,
+    pub screen_need_refresh: bool,
     /// Check for XTest extension
-    have_xtest: bool,
+    pub have_xtest: bool,
     /// Check for SHAPE extension
-    have_shape: bool,
+    pub have_shape: bool,
     /// Check for SHAPE extension with input shape support
-    have_input_shape: bool,
+    pub have_input_shape: bool,
     /// Check for XKB extension
-    have_xkb: bool,
-    event_base_shape: u8,
-    event_base_xkb: u8,
-    event_base_randr: u8,
+    pub have_xkb: bool,
+    pub event_base_shape: u8,
+    pub event_base_xkb: u8,
+    pub event_base_randr: u8,
     /// Clients list
-    clients: Vec<()>,
+    pub clients: Vec<()>,
     /// Embedded windows
-    embedded: Vec<()>,
+    pub embedded: Vec<()>,
     /// Stack client history
-    stack: Vec<()>,
+    pub stack: Vec<()>,
     /// All errors messages from loading config files
-    startup_errors: Vec<String>,
+    pub startup_errors: Vec<String>,
     /// main loop that awesome is running on
-    g_loop: void_ptr,
+    pub g_loop: void_ptr,
     /// The key grabber function
-    keygrabber: i32,
+    pub keygrabber: i32,
     /// The mouse pointer grabber function
-    mousegrabber: i32,
+    pub mousegrabber: i32,
     /// The drawable that currently contains the pointer
-    drawable_under_mouse: (),
+    pub drawable_under_mouse: (),
     /// Drawins
     // TODO Replace wiht DrawinState when it's done
-    drawins: Vec<()>,
+    pub drawins: Vec<()>,
     /// The startup notification display struct
-    sndisplay: void_ptr,
+    pub sndisplay: void_ptr,
     /// Latest timestamp we got from the X server
-    timestamp: (),
+    pub timestamp: (),
     /// The monitor of startup notifications
-    snmonitor: void_ptr,
+    pub snmonitor: void_ptr,
     /// The visual, used to draw
-    visual: void_ptr,
+    pub visual: void_ptr,
     /// The screen's default visual
-    default_visual: void_ptr,
+    pub default_visual: void_ptr,
     /// The screen's information
-    screen: void_ptr,
+    pub screen: void_ptr,
     /// A graphic context.
-    gc: (),
+    pub gc: (),
     /// Our default depth
-    default_depth: u8,
+    pub default_depth: u8,
     /// Our default color map
-    default_cmap: (),
+    pub default_cmap: (),
     /// Do we have to reban clients?
-    need_lazy_banning: bool,
+    pub need_lazy_banning: bool,
     /// Tag list
     // TODO Replace with TagState when it's done
-    tags: Vec<()>,
+    pub tags: Vec<()>,
     /// List of registered xproperties
-    xproperties: Vec<()>,
+    pub xproperties: Vec<()>,
     /// xkb context
-    xkb_ctx: void_ptr,
+    pub xkb_ctx: void_ptr,
     /// xkb state of dead keys on keyboard
-    xkb_state: void_ptr,
+    pub xkb_state: void_ptr,
     /// Do we have a pending reload?
-    xkb_reload_keymap: bool,
+    pub xkb_reload_keymap: bool,
     /// Do we have a pending map change?
-    xkb_map_changed: bool,
+    pub xkb_map_changed: bool,
     /// Do we have a pending group change?
-    xkb_group_changed: bool,
+    pub xkb_group_changed: bool,
     /// The preferred size of client icons for this screen
-    preferred_icon_size: u32,
+    pub preferred_icon_size: u32,
     /// Cached wallpaper information
     // TODO Replace with cairo surface pointer
-    wallpaper: void_ptr,
+    pub wallpaper: void_ptr,
     /// List of enter/leave events to ignore
-    ignore_enter_leave_events: Vec<()>,
-    pending_enter_leave_begin: (),
+    pub ignore_enter_leave_events: Vec<()>,
+    pub pending_enter_leave_begin: (),
     /// List of windows to be destroyed later
-    destroy_later_windows: Vec<()>,
+    pub destroy_later_windows: Vec<()>,
     /// Pending event that still needs to be handled
-    pending_event: void_ptr,
+    pub pending_event: void_ptr,
     /// The exit code that main() will return with
-    exit_code: i32
+    pub exit_code: i32
 }
 
 impl Default for GlobalConf {
@@ -198,5 +198,5 @@ unsafe impl Send for GlobalConf {}
 unsafe impl Sync for GlobalConf {}
 
 lazy_static! {
-    static ref GLOBAL_CONF: Mutex<GlobalConf> = Mutex::new(GlobalConf::default());
+    pub static ref GLOBAL_CONF: Mutex<GlobalConf> = Mutex::new(GlobalConf::default());
 }
