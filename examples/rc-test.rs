@@ -11,7 +11,7 @@ extern crate libc;
 use lua_sys::*;
 
 use libc::c_int;
-use awesome_wayland::{Lua, LuaErr, Awesome};
+use awesome_wayland::{Lua, luaA, LuaErr, Awesome};
 use awesome_wayland::callbacks;
 use std::path::PathBuf;
 use std::default::Default;
@@ -26,14 +26,15 @@ pub struct DummyStruct;
 /// Save on a LOT of typing
 macro_rules! default_impl{
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&self, lua: Lua) -> c_int {0})*),*
+        $($(fn $inner(&self, lua: &Lua) -> c_int {0})*),*
     };
 }
 
 
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
-    fn awesome_xrdb_get_value(&self, lua: Lua) -> c_int {
+    /*
+    fn awesome_xrdb_get_value(&self, lua: &Lua) -> c_int {
         // TODO Add method to get args (in this case resource class and name)
         lua.return_string("");
         unsafe {
@@ -41,81 +42,40 @@ impl callbacks::Awesome for DummyStruct {
         }
         1
     }
+    */
 
-    fn awesome___index(&self, lua: Lua) -> c_int {
-        // TODO Check if has a metatable, and if so use that.
-        let buf = lua.get_index_arg_string().unwrap();
-
-        match buf.as_str() {
-            "version" => {
-                lua.return_string("v1");
-                1
-            },
-            "themes_path" => {
-                lua.return_string(AWESOME_THEMES_PATH);
-                1
-            },
-            "conffile" => {
-                lua.return_string("./examples/rc.lua");
-                1
-            }
-            val => {
-                // Didn't find anything
-                // TODO add something so I can call:
-                // signal_object_emit(L, &GLOBAL_SIGNALS, "debug::index::miss", 2);
-                eprintln!("Val ({:#?}) is not set", val);
-                0
-            }
-        }
-    }
     default_impl!([
         awesome_quit,
-        awesome_exec,
         awesome_spawn,
         awesome_restart,
-        awesome_connect_signal,
-        awesome_disconnect_signal,
-        awesome_emit_signal,
         awesome_systray,
         awesome_load_image,
         awesome_set_preferred_icon_size,
         awesome_register_xproperty,
         awesome_set_xproperty,
         awesome_get_xproperty,
-        awesome___newindex,
         awesome_xkb_set_layout_group,
         awesome_xkb_get_layout_group,
         awesome_xkb_get_group_names,
+        awesome_xrdb_get_value,
         awesome_kill,
         awesome_sync
     ]);
 }
 
 impl callbacks::Button for DummyStruct {
-    default_impl!([
-        button___tostring_meta,
-        button_connect_signal,
-        button_disconnect_signal,
-        button_emit_signal,
-        button___call,
-        button_set_index_miss_handler,
-        button_set_newindex_miss_handler,
-        button_add_signal,
-        button_instances,
-        button,
-        modifiers
-    ]);
+    // NOTE Nothing to implement for button! :)
 }
 
-// TODO Remove
-impl callbacks::Beautiful for DummyStruct {}
-
 impl callbacks::Client for DummyStruct {
-    fn client_get(&self, lua: Lua) -> c_int {
+    /*
+    fn client_get(&self, lua: &Lua) -> c_int {
         lua.return_table::<()>(HashMap::new());
         1
     }
+    */
     default_impl!([
+        client_get,
         client_add_signal,
         client_connect_signal,
         client_disconnect_signal,
