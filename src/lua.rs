@@ -249,6 +249,8 @@ pub mod luaA {
     // Global button class definitions
     lazy_static! {
         pub static ref BUTTON_CLASS: RwLock<Class> = RwLock::new(Class::default());
+        pub static ref DRAWABLE_CLASS: RwLock<Class> =
+            RwLock::new(Class::default());
     }
 
     const NULL: *mut libc::c_void = 0 as _;
@@ -1383,6 +1385,21 @@ pub mod luaA {
         let mut global_signals = GLOBAL_SIGNALS.try_lock().unwrap();
         signal_object_emit(lua, &mut *global_signals, string, top);
         0
+    }
+
+    pub unsafe fn drawable_get_surface(lua: *mut lua_State, obj: *mut Object)
+                                       -> libc::c_int {
+        use ::callbacks::drawable::DrawableState;
+        let drawable = &mut *(obj as *mut DrawableState);
+        if let Some(surface_ref) = drawable.surface.as_ref() {
+            // TODO FIXME This is probably not right
+            // C calls some cairo_surface_reference thing,
+            // but I couldn't find that anywhere.
+            lua_pushlightuserdata(lua, surface_ref.opaque);
+        } else {
+            lua_pushnil(lua);
+        }
+        1
     }
 }
 

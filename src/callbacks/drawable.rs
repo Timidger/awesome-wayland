@@ -4,26 +4,31 @@ use ::luaA;
 use ::lua::Lua;
 use libc::{self, c_int};
 use ::object::Signal;
+use ::object::class::{Class, Object};
+use lua_sys::*;
+use cairo::surface::Surface;
 
 pub type RefreshCallback = fn(*mut libc::c_void);
 
+LUA_OBJECT_FUNCS!(luaA::DRAWABLE_CLASS, Class, new);
+
 #[repr(C)]
 pub struct DrawableState {
-    signals: Vec<Signal>,
+    pub signals: Vec<Signal>,
     /// The pixmap we are drawing to
-    pixmap: *mut libc::c_void,
+    pub pixmap: *mut libc::c_void,
     /// Surface for drawing
     // TODO Switch to cairo::Surface type?
-    surface: *mut libc::c_void,
+    pub surface: Option<Surface>,
     /// The geometry of the drawable (in root window coordinates)
-    geometry: luaA::area_t,
+    pub geometry: luaA::area_t,
     /// Surface contents are undefined if this is false
     // TODO Fix that ^
-    refreshed: bool,
+    pub refreshed: bool,
     /// Callback for refreshing
-    refresh_callback: RefreshCallback,
+    pub refresh_callback: RefreshCallback,
     /// Data for refresh callback
-    refresh_data: *mut libc::c_void
+    pub refresh_data: *mut libc::c_void
 }
 
 #[allow(non_snake_case)]
@@ -79,4 +84,22 @@ pub trait Drawable {
     fn drawable_refresh(&self, lua: &Lua) -> c_int;
 
     fn drawable_geometry(&self, lua: &Lua) -> c_int;
+}
+
+pub unsafe fn wipe(d: *mut Object) {
+    drawable_unset_surface(d as _);
+}
+
+pub unsafe fn drawable_unset_surface(d: *mut DrawableState) {
+    let d = &mut *d;
+    if let Some(mut surface) = d.surface.take() {
+        surface.finish();
+        // When surface is dropped, it calls `cairo_surface_destroy`
+    }
+    if d.pixmap != 0 as *mut _ {
+        // TODO FIXME free pixmap
+    }
+    d.refreshed = false;
+    // TODO
+    //d.pixmap = XCB_NONE;
 }

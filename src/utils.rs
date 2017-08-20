@@ -250,6 +250,57 @@ macro_rules! register_drawin {
         LUA.register_methods("drawin\0", &lua_reg)
     }}
 }
+/// Registers a struct that implements [Drawable](callbacks/trait.Drawable.html)
+///
+/// Note that errors for registering the method is up to the caller
+///
+/// Use this in your main method, after using [register_for_lua](register_for_lua)
+#[macro_export]
+macro_rules! register_drawable {
+    ($callback_impl:ident, $global_name:ident) => {{
+        use ::awesome_wayland::callbacks::{drawable, Drawable};
+        use ::awesome_wayland::luaA::DRAWABLE_CLASS;
+        let drawable_methods = register_lua!($global_name, [
+            drawable_add_signal; add_signal,
+            drawable_connect_signal; connect_signal,
+            drawable_disconnect_signal; disconnect_signal,
+            drawable_emit_signal; emit_signal,
+            drawable_instances; instances,
+            drawable_set_index_miss_handler; set_index_miss_handler,
+            drawable_set_newindex_miss_handler; set_newindex_miss_handler
+        ]);
+        let drawable_meta = register_lua!($global_name, [
+            drawable___tostring_meta; __to_string,
+            drawable_connect_signal_meta; connect_signal,
+            drawable_disconnect_signal_meta; disconnect_signal,
+            drawable___index_meta; __index,
+            drawable___newindex_meta; __newindex,
+            drawable_refresh; refresh,
+            drawable_geometry; geometry
+        ]);
+
+        let lua = LUA.0;
+        unsafe {
+            let mut drawable_class = DRAWABLE_CLASS.try_write().unwrap();
+            luaA::class_setup(lua,
+                              &mut *drawable_class,
+                              c_str!("drawable"),
+                              ::std::ptr::null_mut(),
+                              drawable::new,
+                              Some(drawable::wipe),
+                              None,
+                              Some(luaA::class_index_miss_property),
+                              Some(luaA::class_newindex_miss_property),
+                              &drawable_methods,
+                              &drawable_meta);
+            luaA::class_add_property(&mut *drawable_class,
+                                     "surface",
+                                     None,
+                                     Some(luaA::drawable_get_surface),
+                                     None);
+        }
+    }}
+}
 
 /// Registers a struct that implements [Keygrabber](callbacks/trait.Keygrabber.html)
 ///
@@ -431,6 +482,7 @@ macro_rules! register_all {
         register_button!($callback_impl, $global_name);
         register_client!($callback_impl, $global_name).unwrap();
         register_drawin!($callback_impl, $global_name).unwrap();
+        register_drawable!($callback_impl, $global_name);
         register_keygrabber!($callback_impl, $global_name).unwrap();
         register_mousegrabber!($callback_impl, $global_name).unwrap();
         register_mouse!($callback_impl, $global_name).unwrap();
