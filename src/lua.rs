@@ -579,10 +579,10 @@ pub mod luaA {
     pub unsafe fn class_property_get(lua: *mut lua_State, mut class: *const Class,
                                      fieldidx: libc::c_int) -> *const Property {
         /* Lookup the property using token */
-        let attr = CString::from_raw(
+        let attr = CStr::from_ptr(
             luaL_checklstring(lua, fieldidx,
                               ::std::ptr::null_mut()) as *mut _)
-            .into_string().expect("Could not convert CString to string");
+            .to_string_lossy().to_owned();
 
         /* Look for the property in the class; if not found, go in the parent class. */
         while ! class.is_null() {
