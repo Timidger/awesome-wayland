@@ -489,7 +489,6 @@ pub unsafe fn luaL_opt(lua: *mut lua_State, f: fn(*mut lua_State, libc::c_int) -
 #[macro_export]
 macro_rules! LUA_OBJECT_FUNCS {
     ($lua_class:path, $type:ty, $new_name:ident) => {
-        use ::lua_sys::*;
         use std::ptr;
         pub unsafe extern fn $new_name(lua: *mut lua_State) -> *mut Object {
             let type_size =::std::mem::size_of::<$type>();
@@ -521,7 +520,6 @@ macro_rules! LUA_CLASS_FUNCS {
         use ::lua_sys::*;
         use ::std::ptr::null_mut;
         use ::libc;
-        use ::luaA;
 
         unsafe extern fn $add_sig(_lua: *mut lua_State) -> libc::c_int {
             eprintln!("signal usage with add_signal()");
@@ -531,7 +529,7 @@ macro_rules! LUA_CLASS_FUNCS {
         unsafe extern fn $con_sig(lua: *mut lua_State) -> libc::c_int {
             let check_string = luaL_checklstring(lua, 1, null_mut());
             let mut class = $lua_class.lock().unwrap();
-            luaA::class_connect_signal_from_stack(lua,
+            ::luaA::class_connect_signal_from_stack(lua,
                                                   &mut *class,
                                                   check_string,
                                                   2);
@@ -542,7 +540,7 @@ macro_rules! LUA_CLASS_FUNCS {
         unsafe extern fn $discon_sig(lua: *mut lua_State) -> libc::c_int {
             let check_string = luaL_checklstring(lua, 1, null_mut());
             let mut class = $lua_class.lock().unwrap();
-            luaA::class_disconnect_signal_from_stack(lua,
+            ::luaA::class_disconnect_signal_from_stack(lua,
                                                      &mut *class,
                                                      check_string,
                                                      2);
@@ -552,7 +550,7 @@ macro_rules! LUA_CLASS_FUNCS {
         unsafe extern fn $emit_sig(lua: *mut lua_State) -> libc::c_int {
             let check_string = luaL_checklstring(lua, 1, null_mut());
             let mut class = $lua_class.lock().unwrap();
-            luaA::class_emit_signal(lua, &mut *class,
+            ::luaA::class_emit_signal(lua, &mut *class,
                                     check_string, lua_gettop(lua) -1);
             0
         }
@@ -565,7 +563,7 @@ macro_rules! LUA_CLASS_FUNCS {
 
         unsafe extern fn $index_miss(lua: *mut lua_State) -> libc::c_int {
             let mut class = $lua_class.lock().unwrap();
-            luaA::registerfct(lua, 1, &mut class.newindex_miss_handler)
+            ::luaA::registerfct(lua, 1, &mut class.newindex_miss_handler)
         }
 
         unsafe extern fn $newindex_miss(lua: *mut lua_State) -> libc::c_int {
