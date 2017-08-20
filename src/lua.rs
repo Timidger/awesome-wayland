@@ -5,7 +5,6 @@ use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 use std::ops::{Deref, DerefMut};
-use std::env;
 
 
 const ALREADY_DEFINED: i32 = 0;
@@ -233,6 +232,8 @@ impl DerefMut for Lua {
 pub mod luaA {
     use lua_sys::*;
     use libc;
+    use std::env;
+    use std::process::Command;
     use std::cell::Cell;
     use std::ffi::{CString, CStr};
     use std::collections::LinkedList;
@@ -1336,19 +1337,54 @@ pub mod luaA {
         0
     }
 
+    #[allow(unused_variables)]
     pub unsafe fn quit(lua: *mut lua_State) -> libc::c_int {
         // TODO FIXME Kill g_main_loop
         unimplemented!()
     }
 
     pub unsafe fn exec(lua: *mut lua_State) -> libc::c_int {
+        // TODO I think this is supposed to replace the current process,
+        // not spawn a new thread.
         let cmd_c = luaL_checklstring(lua, 1, NULL as _);
         let cmd = CStr::from_ptr(cmd_c).to_string_lossy().into_owned();
-        let shell = env::var("SHELL").unwrap_or("/bin/sh");
-        let child = Command::new(shell)
-            .args(cmd)
+        let shell = env::var("SHELL").unwrap_or("/bin/sh".into());
+        let _child = Command::new(shell)
+            .arg(cmd.as_str())
             .spawn()
             .expect("Could not spawn child");
+        0
+    }
+
+    pub unsafe fn awesome_connect_signal(lua: *mut lua_State) -> libc::c_int {
+        use object::signal::{signal_connect, GLOBAL_SIGNALS};
+        let name = luaL_checklstring(lua, 1, NULL as _);
+        luaA::checkfunction(lua, 2);
+        let mut global_signals = GLOBAL_SIGNALS.try_lock().unwrap();
+        signal_connect(&mut *global_signals, name, luaA::object_ref(lua, 2));
+        0
+    }
+
+    pub unsafe fn awesome_disconnect_signal(lua: *mut lua_State) -> libc::c_int {
+        use object::signal::{signal_disconnect, GLOBAL_SIGNALS};
+        let name = luaL_checklstring(lua, 1, NULL as _);
+        luaA::checkfunction(lua, 2);
+        let func = lua_topointer(lua, 2) as *mut libc::c_void;
+        let mut global_signals = GLOBAL_SIGNALS.try_lock().unwrap();
+        if signal_disconnect(&mut *global_signals, name, func) != 0 {
+            luaA::object_unref(lua, func);
+        }
+        0
+    }
+
+    pub unsafe fn awesome_emit_signal(lua: *mut lua_State) -> libc::c_int {
+        use object::signal::{signal_object_emit, GLOBAL_SIGNALS};
+        let raw_string = luaL_checklstring(lua, 1, NULL as _);
+        let string = CStr::from_ptr(raw_string);
+        let string = string.to_str().unwrap();
+        let top = lua_gettop(lua) - 1;
+        let mut global_signals = GLOBAL_SIGNALS.try_lock().unwrap();
+        signal_object_emit(lua, &mut *global_signals, string, top);
         0
     }
 }
