@@ -23,6 +23,7 @@ pub mod awesome;
 pub mod callbacks;
 pub use lua::*;
 pub use utils::*;
+pub mod globalconf;
 
 
 pub use awesome::Awesome;
