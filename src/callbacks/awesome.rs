@@ -101,7 +101,7 @@ unsafe fn awesome_index(lua: *mut lua_State) -> c_int {
             1
         },
         "version" | "release" => {
-            unimplemented!();
+            lua_pushstring(lua, c_str!("@AWESOME_RELEASE@"));
             1
         },
         "startup" => {
