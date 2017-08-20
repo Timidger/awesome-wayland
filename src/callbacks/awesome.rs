@@ -101,7 +101,8 @@ unsafe fn awesome_index(lua: *mut lua_State) -> c_int {
             1
         },
         "version" | "release" => {
-            lua_pushstring(lua, c_str!("@AWESOME_RELEASE@"));
+            // TODO For realz
+            lua_pushstring(lua, c_str!("Way Cooler v0.7.0"));
             1
         },
         "startup" => {
@@ -132,11 +133,13 @@ unsafe fn awesome_index(lua: *mut lua_State) -> c_int {
             1
         },
         "themes_path" => {
-            lua_pushstring(lua, c_str!("@AWESOME_THEMES_PATH@"));
+            // TODO Look up dynamically?
+            lua_pushstring(lua, c_str!("/usr/share/awesome/themes"));
             1
         }
         "icon_path" => {
-            lua_pushstring(lua, c_str!("@AWESOME_ICON_PATH@"));
+            // TODO Look up dynamically?
+            lua_pushstring(lua, c_str!("/usr/share/awesome/icons"));
             1
         },
         _ => {
