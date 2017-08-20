@@ -5,6 +5,7 @@ use lua_sys::*;
 use std::path::PathBuf;
 use std::ffi::{CString, CStr};
 use std::ops::{Deref, DerefMut};
+use std::env;
 
 
 const ALREADY_DEFINED: i32 = 0;
@@ -1332,6 +1333,22 @@ pub mod luaA {
         let b: *mut ButtonState = obj as _;
         (*b).modifiers = luaA::tomodifiers(lua, -1);
         luaA::object_emit_signal(lua, -3, c_str!("property::modifiers"), 0);
+        0
+    }
+
+    pub unsafe fn quit(lua: *mut lua_State) -> libc::c_int {
+        // TODO FIXME Kill g_main_loop
+        unimplemented!()
+    }
+
+    pub unsafe fn exec(lua: *mut lua_State) -> libc::c_int {
+        let cmd_c = luaL_checklstring(lua, 1, NULL as _);
+        let cmd = CStr::from_ptr(cmd_c).to_string_lossy().into_owned();
+        let shell = env::var("SHELL").unwrap_or("/bin/sh");
+        let child = Command::new(shell)
+            .args(cmd)
+            .spawn()
+            .expect("Could not spawn child");
         0
     }
 }
