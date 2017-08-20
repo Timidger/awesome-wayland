@@ -1347,6 +1347,11 @@ pub unsafe fn lua_insert(lua: *mut lua_State, idx: libc::c_int) {
     lua_rotate(lua, idx, 1);
 }
 
+pub unsafe fn lua_isnonornil(lua: *mut lua_State, index: libc::c_int) -> bool {
+    let ty = lua_type(lua, index);
+    ty == LUA_TNIL as _ || ty == LUA_TNONE as _
+}
+
 
 // TODO move
 /// Gets the key mask associated with the name
