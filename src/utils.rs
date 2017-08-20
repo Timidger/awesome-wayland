@@ -87,31 +87,46 @@ macro_rules! register_awesome {
 macro_rules! register_button {
     ($callback_impl:ident, $global_name:ident) => {{
         use ::awesome_wayland::callbacks::Button;
-        let lua_reg = {
-            register_lua!($global_name,  [
-                // Class methods
-                button_add_signal; add_signal,
-                button_connect_signal; connect_signal,
-                button_disconnect_signal; disconnect_signal,
-                button_emit_signal; emit_signal,
-                button_instances; instances,
-                button_set_index_miss_handler; set_index_miss_handler,
-                button_set_newindex_miss_handler; set_newindex_miss_handler,
-                // Object methods meta
-                button___tostring_meta; __tostring_meta,
-                button_connect_signal_meta; connect_signal_meta,
-                button_disconnect_signal_meta; button_disconnect_signal_meta,
-                // Class methods meta
-                button___index_meta; __index_meta,
-                button___newindex_meta; __newindex_meta,
-                button___call; __call,
-                /* Properties */
-                button; button,
-                modifiers; modifiers
-            ])
-        };
+        use ::awesome_wayland::callbacks::button::{button_new,
+                                                   button_get_button,
+                                                   button_get_modifiers};
+        use std::ptr::null_mut;
+        let button_methods = register_lua!($global_name, [
+            button_add_signal; add_signal,
+            button_connect_signal; connect_signal,
+            button_disconnect_signal; disconnect_signal,
+            button_emit_signal; emit_signal,
+            button_instances; instances,
+            button_set_index_miss_handler; set_index_miss_handler,
+            button_set_newindex_miss_handler; set_newindex_miss_handler,
+            button___call; __call
+        ]);
+        let button_meta = register_lua!($global_name, [
+            button___tostring_meta; __tostring,
+            button_connect_signal_meta; connect_signal,
+            button_disconnect_signal_meta; button_disconnect_signal,
+            button_emit_signal_meta; emit_signal,
+            button___index_meta; __index,
+            button___newindex_meta; __newindex
+        ]);
+        let lua = LUA.0;
 
-        LUA.register_methods("button\0", &lua_reg)
+        unsafe {
+            let mut button_class = luaA::BUTTON_CLASS.lock().unwrap();
+            luaA::class_setup(lua, &mut *button_class, c_str!("button"), null_mut() as _,
+                            button_new, None, None,
+                            Some(luaA::class_index_miss_property),
+                            Some(luaA::class_newindex_miss_property),
+                            &button_methods, &button_meta);
+            luaA::class_add_property(&mut *button_class, "button",
+                                    Some(luaA::button_set_button),
+                                    Some(button_get_button),
+                                    Some(luaA::button_set_button));
+            luaA::class_add_property(&mut *button_class, "modifiers",
+                                    Some(luaA::button_set_modifiers),
+                                    Some(button_get_modifiers),
+                                    Some(luaA::button_set_modifiers));
+        }
     }}
 }
 
@@ -426,7 +441,7 @@ macro_rules! register_tag {
 macro_rules! register_all {
     ($callback_impl:ident, $global_name:ident) => {{
         register_awesome!($callback_impl, $global_name).unwrap();
-        register_button!($callback_impl, $global_name).unwrap();
+        register_button!($callback_impl, $global_name);
         register_client!($callback_impl, $global_name).unwrap();
         register_drawin!($callback_impl, $global_name).unwrap();
         register_keygrabber!($callback_impl, $global_name).unwrap();
