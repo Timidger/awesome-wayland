@@ -22,7 +22,7 @@ pub struct DummyStruct;
 /// Save on a LOT of typing
 macro_rules! default_impl {
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&self, lua: Lua) -> c_int {0})*),*
+        $($(fn $inner(&self, lua: &Lua) -> c_int {0})*),*
     };
 }
 

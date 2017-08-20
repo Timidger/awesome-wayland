@@ -23,7 +23,7 @@ macro_rules! register_lua {
         $($(unsafe extern "C" fn $inner(lua: *mut lua_State) -> c_int {
             let callback = $global_name.read()
                 .expect("Could not lock user defined callback object");
-            callback.callbacks.$inner(::Lua::from_ptr(lua))
+            callback.callbacks.$inner(&**LUA)
         })*),*
             [
                 $($(register_lua!($inner, $inner_lua_name)),*),*,
@@ -478,7 +478,7 @@ macro_rules! register_for_lua {
 /// For now, it just defines them
 macro_rules! properties {
     ($([ $( $inner:ident ),+ ])+) => {
-        $($(fn $inner(&self, lua: Lua) -> c_int;)*),*
+        $($(fn $inner(&self, lua: &Lua) -> c_int;)*),*
     };
 }
 
