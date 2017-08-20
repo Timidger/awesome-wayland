@@ -49,32 +49,33 @@ macro_rules! register_lua {
 #[macro_export]
 macro_rules! register_awesome {
     ($callback_impl:ident, $global_name:ident) => {{
-        let lua_reg = {
-            register_lua!($global_name, [
-                awesome_quit; quit,
-                awesome_exec; exec,
-                awesome_spawn; spawn,
-                awesome_restart; restart,
-                awesome_connect_signal; connect_signal,
-                awesome_disconnect_signal; disconnect_signal,
-                awesome_emit_signal; emit_signal,
-                awesome_systray; systray,
-                awesome_load_image; load_image,
-                awesome_set_preferred_icon_size; set_preferred_icon_size,
-                awesome_register_xproperty; register_xproperty,
-                awesome_set_xproperty; set_xproperty,
-                awesome_get_xproperty; get_xproperty,
-                awesome___index; __index,
-                awesome___newindex; __newindex,
-                awesome_xkb_set_layout_group; xkb_set_layout_group,
-                awesome_xkb_get_layout_group; xkb_get_layout_group,
-                awesome_xkb_get_group_names; xkb_get_group_names,
-                awesome_xrdb_get_value; xrdb_get_value,
-                awesome_kill; kill,
-                awesome_sync; sync
-            ])
-        };
-        LUA.register_methods("awesome\0", &lua_reg)
+        let awesome_lib = register_lua!($global_name, [
+            awesome_quit; quit,
+            awesome_exec; exec,
+            awesome_spawn; spawn,
+            awesome_restart; restart,
+            awesome_connect_signal; connect_signal,
+            awesome_disconnect_signal; disconnect_signal,
+            awesome_emit_signal; emit_signal,
+            awesome_systray; systray,
+            awesome_load_image; load_image,
+            awesome_set_preferred_icon_size; set_preferred_icon_size,
+            awesome_register_xproperty; register_xproperty,
+            awesome_set_xproperty; set_xproperty,
+            awesome_get_xproperty; get_xproperty,
+            awesome___index; __index,
+            awesome___newindex; __newindex,
+            awesome_xkb_set_layout_group; xkb_set_layout_group,
+            awesome_xkb_get_layout_group; xkb_get_layout_group,
+            awesome_xkb_get_group_names; xkb_get_group_names,
+            awesome_xrdb_get_value; xrdb_get_value,
+            awesome_kill; kill,
+            awesome_sync; sync
+        ]);
+        let lua = LUA.0;
+        unsafe {
+            luaA::openlib(lua, c_str!("awesome"), &awesome_lib, &awesome_lib);
+        }
     }}
 }
 
@@ -440,7 +441,7 @@ macro_rules! register_tag {
 #[macro_export]
 macro_rules! register_all {
     ($callback_impl:ident, $global_name:ident) => {{
-        register_awesome!($callback_impl, $global_name).unwrap();
+        register_awesome!($callback_impl, $global_name);
         register_button!($callback_impl, $global_name);
         register_client!($callback_impl, $global_name).unwrap();
         register_drawin!($callback_impl, $global_name).unwrap();
