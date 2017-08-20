@@ -9,6 +9,7 @@ libc = "0.2.*"
 lua-sys = { version = "0.1.*", features = [] } # No compile-time bindings
 xcb = "0.8.*"
 lazy_static = "0.2"
+cairo = "0.0.4"
 
 [dev-dependencies]
 wlc = { version = "2.0.1", features = ["unsafe-stable"] } 
