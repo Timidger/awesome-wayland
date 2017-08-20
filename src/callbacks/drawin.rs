@@ -3,6 +3,24 @@
 use ::luaA;
 use ::lua::Lua;
 use libc::c_int;
+use lua_sys::*;
+use luaA::DRAWIN_CLASS;
+use ::object::WindowState;
+use ::callbacks::drawable::{self, DrawableState};
+
+#[repr(C)]
+pub struct DrawinState {
+    pub window: WindowState,
+    pub ontop: bool,
+    pub visible: bool,
+    pub cursor: String,
+    /// The drawable for this drawin
+    pub drawable: *mut DrawableState,
+    /// The window geometry
+    pub geometry: luaA::area_t,
+    /// Do we have a pending geometry change that still needs to be applied?
+    pub geometry_dirty: bool
+}
 
 #[allow(non_snake_case)]
 pub trait Drawin {

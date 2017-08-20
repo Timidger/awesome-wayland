@@ -248,7 +248,10 @@ pub mod luaA {
 
     // Global button class definitions
     lazy_static! {
-        pub static ref BUTTON_CLASS: RwLock<Class> = RwLock::new(Class::default());
+        pub static ref BUTTON_CLASS: RwLock<Class> =
+            RwLock::new(Class::default());
+        pub static ref DRAWIN_CLASS: RwLock<Class> =
+            RwLock::new(Class::default());
         pub static ref DRAWABLE_CLASS: RwLock<Class> =
             RwLock::new(Class::default());
     }
@@ -277,10 +280,10 @@ pub mod luaA {
     // TODO move this somewhere else...
     #[repr(C)]
     pub struct area_t {
-        x: i16,
-        y: i16,
-        width: u16,
-        height: u16
+        pub x: i16,
+        pub y: i16,
+        pub width: u16,
+        pub height: u16
     }
 
     pub unsafe fn openlib(lua: *mut lua_State, name: *const libc::c_char,

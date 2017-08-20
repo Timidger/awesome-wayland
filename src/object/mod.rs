@@ -5,4 +5,4 @@ pub mod window;
 
 pub use self::property::Property;
 pub use self::signal::{Signal, GLOBAL_SIGNALS, signal_object_emit};
-pub use self::window::Window;
+pub use self::window::WindowState;
