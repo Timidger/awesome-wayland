@@ -61,7 +61,11 @@ pub trait Awesome {
         }
     }
 
-    fn awesome___newindex(&self, lua: &Lua) -> c_int;
+    fn awesome___newindex(&self, lua: &Lua) -> c_int {
+        unsafe {
+            luaA::default_newindex(lua.0)
+        }
+    }
 
     fn awesome_xkb_set_layout_group(&self, lua: &Lua) -> c_int;
 
