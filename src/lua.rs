@@ -232,7 +232,6 @@ impl DerefMut for Lua {
 pub mod luaA {
     use lua_sys::*;
     use libc;
-    use std::env;
     use std::process::Command;
     use std::cell::Cell;
     use std::ffi::{CString, CStr};
@@ -1348,9 +1347,7 @@ pub mod luaA {
         // not spawn a new thread.
         let cmd_c = luaL_checklstring(lua, 1, NULL as _);
         let cmd = CStr::from_ptr(cmd_c).to_string_lossy().into_owned();
-        let shell = env::var("SHELL").unwrap_or("/bin/sh".into());
-        let _child = Command::new(shell)
-            .arg(cmd.as_str())
+        let _child = Command::new(cmd)
             .spawn()
             .expect("Could not spawn child");
         0
