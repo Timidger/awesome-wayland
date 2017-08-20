@@ -153,6 +153,26 @@ impl callbacks::Drawin for DummyStruct {
         drawin___call
     ]);
 }
+
+impl callbacks::Drawable for DummyStruct {
+    default_impl!([
+        drawable_add_signal,
+        drawable_connect_signal,
+        drawable_disconnect_signal,
+        drawable_emit_signal,
+        drawable_instances,
+        drawable_set_index_miss_handler,
+        drawable_set_newindex_miss_handler,
+        drawable___tostring_meta,
+        drawable_connect_signal_meta,
+        drawable_disconnect_signal_meta,
+        drawable___index_meta,
+        drawable___newindex_meta,
+        drawable_refresh,
+        drawable_geometry
+    ]);
+}
+
 impl callbacks::Keygrabber for DummyStruct {
     default_impl!([
         keygrabber_run,
