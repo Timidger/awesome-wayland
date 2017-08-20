@@ -1,6 +1,8 @@
-//! Attempts to load the shim files used in basic Awesome testing.
-//! This is the most minimal stress test to ensure globals are defined
-//! correctly by the backend.
+//! Attempts to run rc.lua after defining dummy functions that the compositor
+//! is supposed to flesh out.
+//!
+//! A successful run of this test would be for this to execute without Lua
+//! barfing when it tries to execute rc.lua
 #![allow(unused_variables)]
 
 #[macro_use] extern crate awesome_wayland;
@@ -33,16 +35,12 @@ macro_rules! default_impl{
 
 #[allow(unused_variables)]
 impl callbacks::Awesome for DummyStruct {
-    /*
     fn awesome_xrdb_get_value(&self, lua: &Lua) -> c_int {
-        // TODO Add method to get args (in this case resource class and name)
-        lua.return_string("");
         unsafe {
-            lua_pushnil(lua.0);
+            lua_pushnumber(lua.0, 0.0);
         }
         1
     }
-    */
 
     default_impl!([
         awesome_quit,
@@ -57,7 +55,6 @@ impl callbacks::Awesome for DummyStruct {
         awesome_xkb_set_layout_group,
         awesome_xkb_get_layout_group,
         awesome_xkb_get_group_names,
-        awesome_xrdb_get_value,
         awesome_kill,
         awesome_sync
     ]);
@@ -68,14 +65,14 @@ impl callbacks::Button for DummyStruct {
 }
 
 impl callbacks::Client for DummyStruct {
-    /*
     fn client_get(&self, lua: &Lua) -> c_int {
-        lua.return_table::<()>(HashMap::new());
+        use lua_sys::*;
+        unsafe {
+            lua_newtable(lua.0)
+        }
         1
     }
-    */
     default_impl!([
-        client_get,
         client_add_signal,
         client_connect_signal,
         client_disconnect_signal,
