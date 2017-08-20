@@ -232,6 +232,7 @@ impl DerefMut for Lua {
 pub mod luaA {
     use lua_sys::*;
     use libc;
+    use std::cell::Cell;
     use std::ffi::{CString, CStr};
     use std::collections::LinkedList;
     use std::collections::hash_map::DefaultHasher;
@@ -246,7 +247,7 @@ pub mod luaA {
 
     // Global button class definitions
     lazy_static! {
-        pub static ref BUTTON_CLASS: Mutex<Class> = Mutex::new(Class::default());
+        pub static ref BUTTON_CLASS: RwLock<Class> = RwLock::new(Class::default());
     }
 
     const NULL: *mut libc::c_void = 0 as _;
@@ -575,8 +576,8 @@ pub mod luaA {
         }
     }
 
-    pub unsafe fn class_property_get(lua: *mut lua_State, mut class: *mut Class,
-                                     fieldidx: libc::c_int) -> *mut Property {
+    pub unsafe fn class_property_get(lua: *mut lua_State, mut class: *const Class,
+                                     fieldidx: libc::c_int) -> *const Property {
         /* Lookup the property using token */
         let attr = CString::from_raw(
             luaL_checklstring(lua, fieldidx,
@@ -585,9 +586,9 @@ pub mod luaA {
 
         /* Look for the property in the class; if not found, go in the parent class. */
         while ! class.is_null() {
-            if let Some(prop) = (*class).properties.iter_mut()
+            if let Some(prop) = (*class).properties.iter()
                 .find(|prop| prop.name == attr) {
-                return prop as *mut _;
+                return prop as *const _;
             }
             class = (*class).parent;
         }
@@ -596,28 +597,17 @@ pub mod luaA {
     }
 
     pub unsafe extern fn button_new(lua: *mut lua_State) -> libc::c_int {
-        // TODO FIXME
-        // THIS IS A RACE CONDITION WAITING TO HAPPEN
-        // We don't lock the object properly because it will be locked again
-        // whenever `luaA::class_new` calls the allocator, because the allocator
-        // needs to grab the class instance and bump the instance number.
-        //
-        // We can fix this later with a sweet little Cell, but for now it's
-        // not possible :(.
-        let class_ptr = {
-            let mut class = BUTTON_CLASS.lock().unwrap();
-            (&mut *class) as *mut _
-        };
-        luaA::class_new(lua, class_ptr)
+        luaA::class_new(lua, &*BUTTON_CLASS)
     }
 
-    pub unsafe fn class_new(lua: *mut lua_State, class: *mut Class)
+    pub unsafe fn class_new(lua: *mut lua_State, global_class: &RwLock<Class>)
                             -> libc::c_int {
         /* Check we have a table that should contains some properties */
         luaA::checktable(lua, 2);
 
         /* Create a new object */
-        let object_ptr = ((*class).allocator.unwrap())(lua);
+        let class = global_class.try_read().unwrap();
+        let object_ptr = (class.allocator.unwrap())(lua);
 
         /* Push the first key before iterating */
         lua_pushnil(lua);
@@ -628,7 +618,7 @@ pub mod luaA {
              * number TO A STRING, confusing lua_next() */
             let is_string = lua_type(lua, -2) == LUA_TSTRING as i32;
             if is_string {
-                let prop = luaA::class_property_get(lua, class, -2);
+                let prop = luaA::class_property_get(lua, &*class as _, -2);
 
                 if !prop.is_null() && (*prop).new.is_some() {
                     (*prop).new.unwrap()(lua, object_ptr);
@@ -677,7 +667,8 @@ pub mod luaA {
         (*item).signals.clear();
         /* Get the object class */
         let class = luaA::class_get(lua, 1);
-        (*class).instances -= 1;
+        let old_instances = (*class).instances.get();
+        (*class).instances.set(old_instances - 1);
         /* Call the collector function of the class, and all its parent classes */
         let mut cur_class = class;
         while ! cur_class.is_null() {
@@ -759,7 +750,7 @@ pub mod luaA {
         (*class).checker = checker;
         (*class).parent = parent;
         (*class).tostring = None;
-        (*class).instances = 0;
+        (*class).instances = Cell::new(0);
         (*class).index_miss_handler = LUA_REFNIL;
         (*class).newindex_miss_handler = LUA_REFNIL;
 
@@ -1024,7 +1015,7 @@ pub mod luaA {
         return 1;
     }
 
-    pub unsafe fn class_emit_signal(lua: *mut lua_State, class: *mut Class,
+    pub unsafe fn class_emit_signal(lua: *mut lua_State, class: *const Class,
                                     name: *const libc::c_char,
                                     nargs: libc::c_int) {
         let name = CStr::from_ptr(name).to_str().unwrap();
@@ -1225,7 +1216,7 @@ pub mod luaA {
         return lua_gettop(lua);
     }
 
-    pub unsafe fn settype(lua: *mut lua_State, class: *mut Class)
+    pub unsafe fn settype(lua: *mut lua_State, class: *const Class)
                           -> libc::c_int {
         lua_pushlightuserdata(lua, class as _);
         lua_rawget(lua, LUA_REGISTRYINDEX);

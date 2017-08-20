@@ -179,7 +179,7 @@ pub unsafe fn button_class_setup(lua: *mut lua_State) {
             func: None
         }
     ];
-    let mut button_class = luaA::BUTTON_CLASS.lock().unwrap();
+    let mut button_class = luaA::BUTTON_CLASS.try_write().unwrap();
     luaA::class_setup(lua, &mut *button_class, c_str!("button"), null_mut() as _,
                       button_new, None, None,
                       Some(luaA::class_index_miss_property),

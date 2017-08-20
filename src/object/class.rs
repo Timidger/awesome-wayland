@@ -2,6 +2,7 @@
 
 use libc;
 use lua_sys::*;
+use std::cell::Cell;
 use super::signal::Signal;
 use super::property::Property;
 
@@ -33,7 +34,7 @@ pub struct Class {
     pub index_miss_prop: Option<PropF>,
     pub newindex_miss_prop: Option<PropF>,
     pub checker: Option<CheckerF>,
-    pub instances: i32,
+    pub instances: Cell<i32>,
     pub tostring: Option<PropF>,
     pub index_miss_handler: libc::c_int,
     pub newindex_miss_handler: libc::c_int
@@ -54,7 +55,7 @@ impl Default for Class {
             index_miss_prop: None,
             newindex_miss_prop: None,
             checker: None,
-            instances: 0,
+            instances: Cell::new(0),
             tostring: None,
             index_miss_handler: 0,
             newindex_miss_handler: 0

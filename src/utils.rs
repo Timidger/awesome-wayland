@@ -112,7 +112,7 @@ macro_rules! register_button {
         let lua = LUA.0;
 
         unsafe {
-            let mut button_class = luaA::BUTTON_CLASS.lock().unwrap();
+            let mut button_class = luaA::BUTTON_CLASS.try_write().unwrap();
             luaA::class_setup(lua, &mut *button_class, c_str!("button"), null_mut() as _,
                             button_new, None, None,
                             Some(luaA::class_index_miss_property),
@@ -509,9 +509,10 @@ macro_rules! LUA_OBJECT_FUNCS {
             let type_size =::std::mem::size_of::<$type>();
             let p = lua_newuserdata(lua, type_size) as *mut $type;
             ptr::write_bytes::<$type>(p, 0, 1);
-            let mut class = $lua_class.lock().unwrap();
-            class.instances += 1;
-            luaA::settype(lua, &mut *class);
+            let class = $lua_class.try_read().unwrap();
+            let old_instances = class.instances.get();
+            class.instances.set(old_instances + 1);
+            luaA::settype(lua, &*class);
             lua_newtable(lua);
             lua_newtable(lua);
             lua_setmetatable(lua, -2);
@@ -519,7 +520,7 @@ macro_rules! LUA_OBJECT_FUNCS {
             lua_setfield(lua, -2, c_str!("data"));
             luaA::setuservalue(lua, -2);
             lua_pushvalue(lua, -1);
-            luaA::class_emit_signal(lua, &mut *class,
+            luaA::class_emit_signal(lua, &*class,
                                     c_str!("new"), 1);
             return p as _;
         }
@@ -543,7 +544,7 @@ macro_rules! LUA_CLASS_FUNCS {
 
         unsafe extern fn $con_sig(lua: *mut lua_State) -> libc::c_int {
             let check_string = luaL_checklstring(lua, 1, null_mut());
-            let mut class = $lua_class.lock().unwrap();
+            let mut class = $lua_class.try_write().unwrap();
             ::luaA::class_connect_signal_from_stack(lua,
                                                   &mut *class,
                                                   check_string,
@@ -554,7 +555,7 @@ macro_rules! LUA_CLASS_FUNCS {
 
         unsafe extern fn $discon_sig(lua: *mut lua_State) -> libc::c_int {
             let check_string = luaL_checklstring(lua, 1, null_mut());
-            let mut class = $lua_class.lock().unwrap();
+            let mut class = $lua_class.try_write().unwrap();
             ::luaA::class_disconnect_signal_from_stack(lua,
                                                      &mut *class,
                                                      check_string,
@@ -564,25 +565,25 @@ macro_rules! LUA_CLASS_FUNCS {
 
         unsafe extern fn $emit_sig(lua: *mut lua_State) -> libc::c_int {
             let check_string = luaL_checklstring(lua, 1, null_mut());
-            let mut class = $lua_class.lock().unwrap();
+            let mut class = $lua_class.try_write().unwrap();
             ::luaA::class_emit_signal(lua, &mut *class,
                                     check_string, lua_gettop(lua) -1);
             0
         }
 
         unsafe extern fn $class_inst(lua: *mut lua_State) -> libc::c_int {
-            let class = $lua_class.lock().unwrap();
-            lua_pushinteger(lua, class.instances as lua_Integer);
+            let class = $lua_class.try_write().unwrap();
+            lua_pushinteger(lua, class.instances.get() as lua_Integer);
             1
         }
 
         unsafe extern fn $index_miss(lua: *mut lua_State) -> libc::c_int {
-            let mut class = $lua_class.lock().unwrap();
+            let mut class = $lua_class.try_write().unwrap();
             ::luaA::registerfct(lua, 1, &mut class.newindex_miss_handler)
         }
 
         unsafe extern fn $newindex_miss(lua: *mut lua_State) -> libc::c_int {
-            let mut class = $lua_class.lock().unwrap();
+            let mut class = $lua_class.try_write().unwrap();
             luaA::registerfct(lua, 1, &mut class.newindex_miss_handler)
         }
     }
