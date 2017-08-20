@@ -150,20 +150,7 @@ impl callbacks::Drawin for DummyStruct {
         drawin_instances,
         drawin_set_index_miss_handler,
         drawin_set_newindex_miss_handler,
-        drawin___call,
-        drawin_geometry,
-        drawin_drawable,
-        drawin_visible,
-        drawin_ontop,
-        drawin_cursor,
-        drawin_x,
-        drawin_y,
-        drawin_width,
-        drawin_height,
-        drawin_type_,
-        drawin_shape_bounding,
-        drawin_shape_clip,
-        drawin_shape_input
+        drawin___call
     ]);
 }
 impl callbacks::Keygrabber for DummyStruct {

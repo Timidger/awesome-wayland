@@ -240,25 +240,11 @@ macro_rules! register_drawin {
             drawin_set_index_miss_handler; set_index_miss_handler,
             drawin_set_newindex_miss_handler; set_newindex_miss_handler,
             drawin___call; __call,
-            drawin_geometry; geometry,
             drawin___tostring_meta; __tostring_meta,
             drawin_connect_signal_meta; connect_signal_meta,
             drawin_disconnect_signal_meta; disconnect_signal_meta,
             drawin___index_meta; __index_meta,
-            drawin___newindex_meta; __newindex_meta,
-            // Properties
-            drawin_drawable; drawable,
-            drawin_visible; visible,
-            drawin_ontop; ontop,
-            drawin_cursor; cursor,
-            drawin_x; x,
-            drawin_y; y,
-            drawin_width; width,
-            drawin_height; height,
-            drawin_type_; type_,
-            drawin_shape_bounding; shape_bounding,
-            drawin_shape_clip; shape_clip,
-            drawin_shape_input; shape_input
+            drawin___newindex_meta; __newindex_meta
         ]);
 
         LUA.register_methods("drawin\0", &lua_reg)

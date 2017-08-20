@@ -16,7 +16,6 @@ pub trait Drawin {
     fn drawin_set_newindex_miss_handler(&self, lua: &Lua) -> c_int;
     // Methods
     fn drawin___call(&self, lua: &Lua) -> c_int;
-    fn drawin_geometry(&self, lua: &Lua) -> c_int;
     // Object meta methods
     fn drawin___tostring_meta(&self, lua: &Lua) -> c_int {
         unsafe {
@@ -44,19 +43,4 @@ pub trait Drawin {
             luaA::class_newindex(lua.0)
         }
     }
-    /* Properties */
-    properties!([
-        drawin_drawable,
-        drawin_visible,
-        drawin_ontop,
-        drawin_cursor,
-        drawin_x,
-        drawin_y,
-        drawin_width,
-        drawin_height,
-        drawin_type_,
-        drawin_shape_bounding,
-        drawin_shape_clip,
-        drawin_shape_input
-    ]);
 }
