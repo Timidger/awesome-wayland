@@ -629,6 +629,23 @@ macro_rules! LUA_CLASS_FUNCS {
 }
 
 
+/// See LUA_OBJECT_EXPORT_OPTIONAL_PROPRERTY in the C lib for more details
+#[macro_export]
+macro_rules! LUA_OBJECT_EXPORT_OPTIONAL_PROPERTY {
+    ($f_name:ident, $type:ty, $field:ident, $pusher:ident, $empty_value:expr) => {
+        pub unsafe fn $f_name(lua: *mut lua_State,
+                              ty: *mut ::object::class::Object)
+                              -> ::libc::c_int {
+            let object = &mut *(ty as *mut $type);
+            if object.$field == $empty_value {
+                return 0
+            }
+            $pusher(lua, (*(ty as *mut $type)).$field as _);
+            1
+        }
+    }
+}
+
 /// See LUA_OBJECT_EXPORT_PROPRERTY in the C lib for more details
 #[macro_export]
 macro_rules! LUA_OBJECT_EXPORT_PROPERTY {
