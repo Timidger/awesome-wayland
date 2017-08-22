@@ -19,7 +19,7 @@ LUA_CLASS_FUNCS!(luaA::BUTTON_CLASS,
                  button_set_index_miss_handler,
                  button_set_newindex_miss_handler);
 LUA_OBJECT_EXPORT_PROPERTY!(button_get_button, ButtonState, button, lua_pushinteger);
-LUA_OBJECT_EXPORT_PROPERTY!(button_get_modifiers, ButtonState, button, pushmodifiers);
+LUA_OBJECT_EXPORT_PROPERTY!(button_get_modifiers, ButtonState, modifiers, pushmodifiers);
 
 /// State of the button
 #[repr(C)]
