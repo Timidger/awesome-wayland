@@ -658,3 +658,30 @@ macro_rules! LUA_OBJECT_EXPORT_PROPERTY {
         }
     }
 }
+
+/// A convienence wrapper around LUA_OBJECT_EXPORT_PROPERTY so that
+/// you can define many at once without making your eyes bleed.
+#[macro_export]
+macro_rules! LUA_OBJECT_EXPORT_PROPERTIES {
+    ($type_name:ty,
+     $([ $( $inner_f_name:ident; $field:ident; $lua_func:ident),* ])*) => {
+        $($(LUA_OBJECT_EXPORT_PROPERTY!($inner_f_name,
+                                        $type_name,
+                                        $field,
+                                        $lua_func);)+)+
+     };
+}
+
+/// A convienence wrapper around LUA_OBJECT_EXPORT_OPTIONAL_PROPERTY so that
+/// you can define many at once without making your eyes bleed.
+#[macro_export]
+macro_rules! LUA_OBJECT_EXPORT_OPTIONAL_PROPERTIES {
+    ($type_name:ty,
+     $([ $( $inner_f_name:ident; $field:ident; $lua_func:ident; $empty_value:expr),* ])*) => {
+        $($(LUA_OBJECT_EXPORT_OPTIONAL_PROPERTY!($inner_f_name,
+                                                 $type_name,
+                                                 $field,
+                                                 $lua_func,
+                                                 $empty_value);)+)+
+    };
+}
