@@ -640,7 +640,7 @@ macro_rules! LUA_OBJECT_EXPORT_OPTIONAL_PROPERTY {
             if object.$field == $empty_value {
                 return 0
             }
-            $pusher(lua, (*(ty as *mut $type)).$field as _);
+            $pusher(lua, (*(ty as *mut $type)).$field.clone() as _);
             1
         }
     }
@@ -653,7 +653,7 @@ macro_rules! LUA_OBJECT_EXPORT_PROPERTY {
         pub unsafe fn $f_name(lua: *mut lua_State,
                               ty: *mut ::object::class::Object)
                               -> ::libc::c_int {
-            $pusher(lua, (*(ty as *mut $type)).$field as _);
+            $pusher(lua, (*(ty as *mut $type)).$field.clone() as _);
             1
         }
     }
