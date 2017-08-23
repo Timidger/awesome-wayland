@@ -1,13 +1,8 @@
 //! Definition for the Window class. This class is a super class to various
 //! objects, including drawable.
 
-use ::luaA::{self, pushmodifiers};
-use ::lua::Lua;
 use ::object::signal::Signal;
-use ::object::class::{Class, Object};
-use libc::{c_void, c_int};
-use lua_sys::*;
-use xcb::ffi::xproto::xcb_button_t;
+use libc::{c_void};
 use ::callbacks::button::ButtonState;
 
 // TODO Remove this lint

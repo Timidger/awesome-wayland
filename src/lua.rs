@@ -243,9 +243,6 @@ pub mod luaA {
     use ::object::class::{Class, Object, AllocatorF, CheckerF, CollectorF,
                           PropF};
     use callbacks::button::ButtonState;
-    use callbacks::screen::ScreenState;
-    use callbacks::client::ClientState;
-    use globalconf::GLOBAL_CONF;
     // This weird line is so that I can use luaA namespace explicitly here.
     use super::luaA;
 

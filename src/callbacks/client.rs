@@ -8,7 +8,7 @@ use ::object::class::{Class, Object};
 use ::object::window::WindowState;
 use ::callbacks::drawable::DrawableState;
 use ::callbacks::screen::ScreenState;
-use std::ffi::{CString, CStr};
+use std::ffi::{CString};
 
 LUA_OBJECT_FUNCS!(luaA::CLIENT_CLASS, Class, client_new);
 LUA_CLASS_FUNCS!(luaA::CLIENT_CLASS,
@@ -21,6 +21,8 @@ LUA_CLASS_FUNCS!(luaA::CLIENT_CLASS,
                  client_set_newindex_miss_handler);
 
 #[repr(C)]
+#[allow(dead_code)]
+#[allow(non_snake_case)]
 pub struct ClientState {
     pub window: WindowState,
     /// Window we use for input focus and no-input clients
@@ -118,6 +120,7 @@ pub struct ClientState {
     pub titlebar: Vec<TitleBar>
 }
 
+#[allow(dead_code)]
 pub struct TitleBar {
     /// The size of this bar.
     size: u16,

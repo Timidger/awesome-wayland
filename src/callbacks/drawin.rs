@@ -3,10 +3,8 @@
 use ::luaA;
 use ::lua::Lua;
 use libc::c_int;
-use lua_sys::*;
-use luaA::DRAWIN_CLASS;
 use ::object::WindowState;
-use ::callbacks::drawable::{self, DrawableState};
+use ::callbacks::drawable::DrawableState;
 
 #[repr(C)]
 pub struct DrawinState {
