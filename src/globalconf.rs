@@ -7,6 +7,7 @@ use std::default::Default;
 use ::callbacks::button::ButtonState;
 use ::callbacks::client::ClientState;
 use ::callbacks::screen::ScreenState;
+use ::callbacks::drawin::DrawinState;
 
 #[allow(non_camel_case_types)]
 type void_ptr = *mut c_void;
@@ -23,6 +24,7 @@ type void_ptr = *mut c_void;
 // TODO Remove
 #[allow(dead_code)]
 /// Main configuration structure
+#[repr(C)]
 pub struct GlobalConf {
     /// XCB Connection ref
     pub connection: (),
@@ -79,6 +81,7 @@ pub struct GlobalConf {
     pub mousegrabber: i32,
     /// The drawable that currently contains the pointer
     pub drawable_under_mouse: (),
+    pub focus: Focus,
     /// Drawins
     // TODO Replace wiht DrawinState when it's done
     pub drawins: Vec<()>,
@@ -86,6 +89,7 @@ pub struct GlobalConf {
     pub sndisplay: void_ptr,
     /// Latest timestamp we got from the X server
     pub timestamp: (),
+    pub systray: Systray,
     /// The monitor of startup notifications
     pub snmonitor: void_ptr,
     /// The visual, used to draw
@@ -167,9 +171,11 @@ impl Default for GlobalConf {
             keygrabber: 0,
             mousegrabber: 0,
             drawable_under_mouse: (),
+            focus: Focus::default(),
             drawins: Vec::new(),
             sndisplay:  NULL as _,
             timestamp: (),
+            systray: Systray::default(),
             snmonitor:  NULL as _,
             visual:  NULL as _,
             default_visual:  NULL as _,
@@ -201,4 +207,49 @@ unsafe impl Sync for GlobalConf {}
 
 lazy_static! {
     pub static ref GLOBAL_CONF: Mutex<GlobalConf> = Mutex::new(GlobalConf::default());
+}
+
+#[repr(C)]
+pub struct Focus {
+    /// Focused client
+    pub client: *mut ClientState,
+    /// Is there a focuse change pending?
+    pub need_update: bool,
+    /// When nothing has the input focus, this window actually is focused.
+    pub window_no_focus: ()
+}
+
+impl Default for Focus {
+    fn default() -> Self {
+        Focus {
+            client: ::std::ptr::null_mut(),
+            need_update: false,
+            window_no_focus: ()
+        }
+    }
+}
+
+#[repr(C)]
+pub struct Systray {
+    pub window: (),
+    /// ATOM for _NET_SYSTEM_TRAY_%d
+    pub atom: (),
+    /// Do we own the systray selection
+    pub registered: bool,
+    /// Systray window parent
+    pub parent: *mut DrawinState,
+    /// Background color
+    pub background_pixel: u32
+}
+
+impl Default for Systray {
+    fn default() -> Self {
+        Systray {
+            window: (),
+            atom: (),
+            registered: false,
+            parent: ::std::ptr::null_mut(),
+            background_pixel: 0
+        }
+    }
 }
