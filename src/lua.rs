@@ -847,6 +847,15 @@ pub mod luaA {
 
     }
 
+    pub unsafe fn checkudataornil(lua: *mut lua_State, udx: libc::c_int,
+                                  class: *mut Class) -> *mut libc::c_void {
+        let lua_t = lua_type(lua, udx);
+        if lua_t == LUA_TNIL as _ {
+            return ::std::ptr::null_mut()
+        }
+        checkudata(lua, udx, class)
+    }
+
     pub unsafe fn object_incref(lua: *mut lua_State, tud: libc::c_int,
                                 oud: libc::c_int) -> *mut libc::c_void {
         /* Get pointer value of the item */
