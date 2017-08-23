@@ -3,6 +3,7 @@ name = "awesome-wayland"
 description = "Bindings and glue to interface with Awesome Lua libraries"
 version = "0.0.0"
 authors = ["Timidger <APragmaticPlace@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 libc = "0.2.*"
@@ -10,6 +11,15 @@ lua-sys = { version = "0.1.*", features = [] } # No compile-time bindings
 xcb = "0.8.*"
 lazy_static = "0.2"
 cairo = "0.0.4"
+glib-sys = "0.4.*"
+xcb-util-sys = { path = "../xcb-util-sys" }
+xcb-util-xrm-sys = { path = "../xcb-util-xrm-sys" }
+xcb-cursor-sys = { path = "../xcb-cursor-sys" }
+libsn-sys = { path = "../libsn-sys" }
+xkbcommon-sys = "0.7.4"
 
 [dev-dependencies]
 wlc = { version = "2.0.1", features = ["unsafe-stable"] } 
+
+[build-dependencies]
+bindgen = "0.20.0"

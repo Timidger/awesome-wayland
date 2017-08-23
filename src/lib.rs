@@ -17,6 +17,24 @@ extern crate xcb;
 // Cairo bindings, letting us draw on the screen
 // and pass surfaces to the compositor
 extern crate cairo;
+// GLib bindings
+extern crate glib_sys;
+// libsn bindings
+extern crate libsn_sys;
+// xorg-util bindings
+extern crate xcb_util_sys;
+// xorg-util-xrm bindings
+extern crate xcb_util_xrm_sys;
+// xorg-cursor bindings
+extern crate xcb_cursor_sys;
+// xkbcommon bindings
+extern crate xkbcommon_sys;
+
+// generated cairo bindings, so that we can have the cairo creation using xcb
+mod cairo_xcb {
+    use ::libc;
+    include!("cairo_xcb_gen.rs");
+}
 
 #[macro_use] mod utils;
 mod lua;
