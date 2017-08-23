@@ -4,6 +4,11 @@ use ::luaA;
 use ::lua::Lua;
 use libc::c_int;
 
+#[repr(C)]
+pub struct ScreenState {
+    // TODO IMPLEMENT
+}
+
 #[allow(non_snake_case)]
 pub trait Screen {
     // Class Methods
