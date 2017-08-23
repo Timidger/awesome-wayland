@@ -1,7 +1,7 @@
 //! The global configuration state.
 //! Based off of globalconf.h in the C source.
 
-use libc::{self, c_void};
+use libc::c_void;
 use std::sync::Mutex;
 use std::default::Default;
 use ::callbacks::button::ButtonState;
@@ -17,13 +17,10 @@ use ::xcb_util_xrm_sys::{xcb_xrm_database_t, xcb_xrm_database_from_default};
 use ::xcb_cursor_sys::xcb_cursor_context_t;
 use ::xkbcommon_sys::{xkb_context, xkb_state};
 use ::libsn_sys::{SnDisplay, SnMonitorContext};
-use ::cairo_xcb::{cairo_xcb_surface_create, _cairo_surface};
+use ::cairo_xcb::_cairo_surface;
 use glib_sys::GMainLoop;
-use ::cairo::surface::Surface;
 
 #[allow(non_camel_case_types)]
-type void_ptr = *mut c_void;
-
 // TODO Remove
 #[allow(dead_code)]
 /// Main configuration structure
@@ -142,7 +139,7 @@ impl Default for GlobalConf {
     fn default() -> Self {
         unsafe {
             let mut default_screen = 0;
-            let NULL =  0 as *mut libc::c_void;
+            let NULL =  0 as *mut c_void;
             let connection = xcb_connect(NULL as _, &mut default_screen);
             GlobalConf {
                 connection,

@@ -31,6 +31,9 @@ extern crate xcb_cursor_sys;
 extern crate xkbcommon_sys;
 
 // generated cairo bindings, so that we can have the cairo creation using xcb
+#[allow(dead_code)]
+#[allow(non_camel_case_types)]
+#[allow(non_upper_case_globals)]
 mod cairo_xcb {
     use ::libc;
     include!("cairo_xcb_gen.rs");
