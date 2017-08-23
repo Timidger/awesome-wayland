@@ -243,6 +243,9 @@ pub mod luaA {
     use ::object::class::{Class, Object, AllocatorF, CheckerF, CollectorF,
                           PropF};
     use callbacks::button::ButtonState;
+    use callbacks::screen::ScreenState;
+    use callbacks::client::ClientState;
+    use globalconf::GLOBAL_CONF;
     // This weird line is so that I can use luaA namespace explicitly here.
     use super::luaA;
 
@@ -250,9 +253,13 @@ pub mod luaA {
     lazy_static! {
         pub static ref BUTTON_CLASS: RwLock<Class> =
             RwLock::new(Class::default());
+        pub static ref CLIENT_CLASS: RwLock<Class> =
+            RwLock::new(Class::default());
         pub static ref DRAWIN_CLASS: RwLock<Class> =
             RwLock::new(Class::default());
         pub static ref DRAWABLE_CLASS: RwLock<Class> =
+            RwLock::new(Class::default());
+        pub static ref SCREEN_CLASS: RwLock<Class> =
             RwLock::new(Class::default());
     }
 
