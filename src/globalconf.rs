@@ -5,6 +5,8 @@ use libc::{self, c_void};
 use std::sync::Mutex;
 use std::default::Default;
 use ::callbacks::button::ButtonState;
+use ::callbacks::client::ClientState;
+use ::callbacks::screen::ScreenState;
 
 #[allow(non_camel_case_types)]
 type void_ptr = *mut c_void;
@@ -33,7 +35,7 @@ pub struct GlobalConf {
     /// Keys symbol table
     pub keysms: void_ptr,
     /// Logical screens
-    pub screens: Vec<void_ptr>,
+    pub screens: Vec<ScreenState>,
     /// The primary screen, access through screen_get_primary()
     pub primary_screen: Vec<void_ptr>,
     /// Root window key bindings
@@ -62,11 +64,11 @@ pub struct GlobalConf {
     pub event_base_xkb: u8,
     pub event_base_randr: u8,
     /// Clients list
-    pub clients: Vec<()>,
+    pub clients: Vec<ClientState>,
     /// Embedded windows
     pub embedded: Vec<()>,
     /// Stack client history
-    pub stack: Vec<()>,
+    pub stack: Vec<ClientState>,
     /// All errors messages from loading config files
     pub startup_errors: Vec<String>,
     /// main loop that awesome is running on
