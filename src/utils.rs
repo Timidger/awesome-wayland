@@ -659,6 +659,16 @@ macro_rules! LUA_OBJECT_EXPORT_PROPERTY {
     }
 }
 
+/// See OBJECT_EXPORT_PROPRERTY in the C lib for more details
+#[macro_export]
+macro_rules! OBJECT_EXPORT_PROPERTY {
+    ($f_name:ident, $type:ty, $field:ident, $return_t:ident) => {
+        pub unsafe fn $f_name(ty: *mut ::object::class::Object) -> $return_t {
+            (*(ty as *mut $type)).$field.clone() as _
+        }
+    }
+}
+
 /// A convienence wrapper around LUA_OBJECT_EXPORT_PROPERTY so that
 /// you can define many at once without making your eyes bleed.
 #[macro_export]
